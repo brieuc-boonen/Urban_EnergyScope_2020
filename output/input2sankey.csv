@@ -1,0 +1,20 @@
+source,target,realValue,layerID,layerColor,layerUnit
+NG,CHP,0.00,NG,#FFD700,TWh
+NG,HPs,0.00,NG,#FFD700,TWh
+NG,Boilers,0.00,NG,#FFD700,TWh
+Electricity,Elec,0.01,Electricity,#00BFFF,TWh
+Oil,CHP,0.00,Oil,#8B008B,TWh
+Oil,Boilers,0.00,Oil,#8B008B,TWh
+Wood,Biofuels,0.00,Wood,#CD853F,TWh
+Wood,Boilers,0.01,Wood,#CD853F,TWh
+Elec,Exp & Loss,0.00,Electricity,#00BFFF,TWh
+Elec,Elec demand,0.01,Electricity,#00BFFF,TWh
+CHP,Elec,0.00,Electricity,#00BFFF,TWh
+CHP,Heat LT Dec,-0.00,Heat LT,#FA8072,TWh
+CHP,Dec. Sto,0.00,Heat LT,#FA8072,TWh
+HPs,Heat LT Dec,0.00,Heat LT,#FA8072,TWh
+Biofuels,Elec,0.00,Electricity,#00BFFF,TWh
+Biofuels,Boilers,0.00,Oil,#8B008B,TWh
+Boilers,Heat LT Dec,0.01,Heat LT,#FA8072,TWh
+Boilers,Dec. Sto,0.00,Heat LT,#FA8072,TWh
+Dec. Sto,Heat LT Dec,0.00,Heat LT,#FA8072,TWh

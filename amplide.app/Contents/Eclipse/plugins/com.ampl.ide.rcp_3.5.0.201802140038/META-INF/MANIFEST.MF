@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Built-By: vagrant
+Eclipse-BundleShape: dir
+Bundle-Name: %Bundle-Name
+Bundle-Localization: plugin
+Created-By: Apache Maven
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Require-Bundle: com.ampl.ide.help,org.eclipse.ui
+Bundle-Vendor: %Bundle-Vendor
+Build-Jdk: 1.7.0_79
+Bundle-Version: 3.5.0.201802140038
+Bundle-ManifestVersion: 2
+Import-Package: com.ampl.ide,org.eclipse.core.filesystem,org.eclipse.c
+ ore.runtime,org.eclipse.core.runtime.preferences,org.eclipse.equinox.
+ app,org.eclipse.jface.action,org.eclipse.jface.preference,org.eclipse
+ .swt.graphics,org.eclipse.swt.widgets,org.eclipse.ui,org.eclipse.ui.a
+ ctions,org.eclipse.ui.application,org.eclipse.ui.ide,org.eclipse.ui.i
+ nternal.ide,org.eclipse.ui.services,org.osgi.framework,org.osgi.servi
+ ce.prefs
+Bundle-SymbolicName: com.ampl.ide.rcp;singleton:=true
+Archiver-Version: Plexus Archiver
+
