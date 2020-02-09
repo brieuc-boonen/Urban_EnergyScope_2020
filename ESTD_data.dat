@@ -84,7 +84,7 @@ set BOILERS	:=	IND_BOILER_GAS	IND_BOILER_WOOD	IND_BOILER_OIL	IND_BOILER_COAL	IND
 
 # -----------------------------
 # PARAMETERS NOT DEPENDING ON the NUMBER OF TYPICAL DAYS :
-# -----------------------------
+# ---------------------------
 
 ## PARAMETERS presented in Table 2.
 param i_rate := 	0.03125	; # part [2.7.4]
