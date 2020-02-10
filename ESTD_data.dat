@@ -27,7 +27,7 @@
 
 # --------------------------
 # SETS not depending on TD
-# --------------------------
+# ------------------------
 
 set SECTORS := 	HOUSEHOLDS	SERVICES	INDUSTRY	TRANSPORTATION; #?
 set END_USES_INPUT := 	ELECTRICITY	LIGHTING	HEAT_HIGH_T	HEAT_LOW_T_SH	HEAT_LOW_T_HW	MOBILITY_PASSENGER	MOBILITY_FREIGHT;
