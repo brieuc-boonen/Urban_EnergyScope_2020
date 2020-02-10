@@ -329,7 +329,7 @@ RES_GEO	1000000	0	0
 
 
 
-# Storage inlet/outlet efficiency : part [2.6] (Table 28) and part [2.2.1.1] for hydro.
+# Storage inlet/outlet efficiency : part [2.6] (Table 28) and part [2.2.1.1] for hydro
 param storage_eff_in:	ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	COAL	COAL_CCS	URANIUM	WASTE	H2	HEAT_HIGH_T	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR	RES_HYDRO	RES_GEO:=
 DAM_STORAGE	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 LNG_STO	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
