@@ -87,8 +87,8 @@ set BOILERS	:=	IND_BOILER_GAS	IND_BOILER_WOOD	IND_BOILER_OIL	IND_BOILER_COAL	IND
 # -----------------------------
 
 ## PARAMETERS presented in Table 2.
-param i_rate := 	0.03125	; # part [2.7.4]
-param re_share_primary := 	0.3	;
+param i_rate := 	0.03125 ; # part [2.7.4]
+param re_share_primary := 	0   ;
 param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
 
 # Part [2.4]
