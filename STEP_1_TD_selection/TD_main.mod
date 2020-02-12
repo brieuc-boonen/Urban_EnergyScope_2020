@@ -57,12 +57,19 @@ minimize Euclidean_distance:
 	sum{i in DAYS,j in DAYS} Distance[i,j]*Cluster_matrix[i,j];
 
 ##############################################
-###            GLPK version                ###
+###            AMPL version                ###
 ##############################################
 
+# Si on utilise ampl, alors executer le .run
+
+##############################################
+###            GLPK version                ###
+##############################################
+/*
 solve;
 
 ### Printing output
 for {i in DAYS}{
  printf "%d\t\n",(sum{j in DAYS} j*Cluster_matrix[j,i]) >> "TD_of_days.out";
 }
+*/

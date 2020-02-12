@@ -1,0 +1,7 @@
+ampl: model 'C:\Users\brieu\OneDrive\Documents\Studies\UCL\Thesis\AMPL\GIT\energysystems\STEP_1_TD_selection\TD_main.mod';
+Error at _cmdno 5 executing "solve" command
+(file C:\Users\brieu\OneDrive\Documents\Studies\UCL\Thesis\AMPL\GIT\energysystems\STEP_1_TD_selection\TD_main.mod, line 69, offset 3185):
+error processing param Distance[1,1]:
+	no value for Ndata[1,1]
+ampl: reset;
+ampl: include 'C:\Users\brieu\OneDrive\Documents\Studies\UCL\Thesis\AMPL\GIT\energysystems\STEP_1_TD_selection\TD_main.run';
