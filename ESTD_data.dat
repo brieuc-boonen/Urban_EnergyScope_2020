@@ -100,9 +100,9 @@ param c_grid_extra :=	9.40E+03	; # cost to reinforce the grid due to intermitten
 # end_Uses_year see part [2.1]
 param end_uses_demand_year: 	HOUSEHOLDS	SERVICES	TRANSPORTATION	:=
 ELECTRICITY	0	0	0																					
-LIGHTING	0.00934250 0	0																					
-HEAT_LOW_T_SH	0.013354080	0	0																					
-HEAT_LOW_T_HW	0.00217392	0	0																					
+LIGHTING	2650 0	0																					
+HEAT_LOW_T_SH	15402.07	0	0																					
+HEAT_LOW_T_HW	2379.07	0	0																				
 MOBILITY_PASSENGER	0	0	0																					
 MOBILITY_FREIGHT	0	0	0
 ;
@@ -185,7 +185,7 @@ PYROLYSIS	0.0238	0	0	1	0	0	0	-1.5017	0	0	0	0	0	0	0	0	0	0
 
 # Technologies data from Tables (10,19,21,22,23,25,27,28,29,30) and part [2.2.1.1] for hydro
 param:	c_inv	c_maint	gwp_constr	lifetime	c_p	fmin_perc	fmax_perc	f_min	f_max :=
-PV	1000	15.88	2081.43	25	1	0	1	0	0.00001
+PV	1000	15.88	2081.43	25	1	0	1	0	10
 WIND	1465.62	22.9	622.85	20	1	0	0.5	0	0
 DHN_HP_ELEC	368.17	12.81	174.79	25	0.95	0	0.5	0	0
 DHN_COGEN_GAS	1339.67	40.08	490.88	25	0.85	0	0.5	0	0
@@ -201,7 +201,8 @@ DEC_COGEN_OIL	1394.21	87.53	1024.32	20	1	0	0.5	0	30
 DEC_ADVCOGEN_GAS	7734.03	154.68	2193.45	20	1	0	0.5	0	30
 DEC_ADVCOGEN_H2	7734.03	154.68	2193.45	20	1	0	0.5	0	30
 DEC_BOILER_GAS	169.3	5.08	21.09	17	1	0.2	0.8	0	30
-DEC_BOILER_WOOD	493.84	17.28	21.09	17	1	0	1	0	30
+#DEC_BOILER_WOOD	493.84	17.28	21.09	17	1	0	1	0	30
+DEC_BOILER_WOOD	493.84	17.28	21.09	17	1	0	1	0	0
 DEC_BOILER_OIL	152.05	9.12	21.09	17	1	0.1	0.5	0	30
 DEC_SOLAR	767.9	8.64	221.22	20	1	0	0.5	0	30
 DEC_DIRECT_ELEC	42.69	0.19	1.47	15	1	0	0.7	0	30
