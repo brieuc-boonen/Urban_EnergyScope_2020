@@ -117,7 +117,7 @@ param share_heat_dhn_min := 	0	;
 param share_heat_dhn_max := 	0	;
 
 
-# f: efficiencies (data from Tables 19,21,22,23,25,29,30)
+# f: efficiencies (data from Tables 19,21,22,23,25,29,30) 
 param layers_in_out: ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	WASTE	H2	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR :=
 ELECTRICITY	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 GASOLINE	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
