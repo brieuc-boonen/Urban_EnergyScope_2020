@@ -656,10 +656,10 @@ param PathName symbolic default "output/";
 			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 			    		((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.0001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
 			     	    (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.0001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
-						printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "Dec. Sto",
+					printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "Dec. Sto",
 							sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-							((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.0001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-							 (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.0001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] )))/1000
+							((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.0001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+							 (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.0001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] )))
 							,"Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 
 
