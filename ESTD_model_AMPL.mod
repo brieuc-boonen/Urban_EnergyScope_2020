@@ -136,7 +136,7 @@ var F_t_Solar       {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DE
 
 ##Dependent variables [Table 4] :
 var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
-var TotalCost >= 0; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
+var TotalCost >= -100000; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
@@ -145,6 +145,8 @@ var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of
 var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
+
+var Cin
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -179,8 +181,11 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]	
 subject to totalcost_cal:
-	TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i];
-	
+TotalCost = (if C_op ["ELEC_EXPORT"] <= 0 then
+	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i])
+else
+	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] - C_op ["ELEC_EXPORT"]) );
+
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
 	C_inv [j] = c_inv [j] * F [j];
