@@ -90,7 +90,7 @@ param f_min {TECHNOLOGIES} >= 0; # Minimum feasible installed capacity [GW], ref
 param fmax_perc {TECHNOLOGIES} >= 0, <= 1 default 1; # value in [0,1]: this is to fix that a technology can at max produce a certain % of the total output of its sector over the entire year
 param fmin_perc {TECHNOLOGIES} >= 0, <= 1 default 0; # value in [0,1]: this is to fix that a technology can at min produce a certain % of the total output of its sector over the entire year
 param avail {RESOURCES} >= 0; # Yearly availability of resources [GWh/y]
-param c_op {RESOURCES} >= 0; # cost of resources in the different periods [MCHF/GWh]
+param c_op {RESOURCES} >= -1; # cost of resources in the different periods [MCHF/GWh]
 param n_car_max >=0; #  [car] Maximum amount of cars. Required to compute the aggregated size of EVs batteries.
 param peak_sh_factor >= 0;   # %_Peak_sh [-]: ratio between highest yearly demand and highest TDs demand
 param layers_in_out {RESOURCES union TECHNOLOGIES diff STORAGE_TECH , LAYERS}; # f: input/output Resources/Technologies to Layers. Reference is one unit ([GW] or [Mpkm/h] or [Mtkm/h]) of (main) output of the resource/technology. input to layer (output of technology) > 0.
@@ -139,7 +139,7 @@ var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for
 var TotalCost >= 0; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
-var C_op {RESOURCES} >= 0; #C_op [MCHF/year]: Total O&M cost of each resource
+var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
 var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
 var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
 var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
