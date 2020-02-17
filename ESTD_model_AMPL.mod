@@ -77,7 +77,8 @@ param c_p_t {TECHNOLOGIES, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity fact
 param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param i_rate > 0; # discount rate [-]: real discount rate
-param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE
+param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
+param auto_consumption_rate >= 0;
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -377,13 +378,28 @@ subject to extra_efficiency:
 subject to net_metering:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
 
+# [PoC] Import when Feed_in
+/*subject to feed_in_tariff:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
+*/
+
+# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
+/*
+subject to prosumer_policy {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
+	if (auto_consumption_rate <= 0.3774
+	then  Tax = F["PV"] * 0.0856; #with net-metering ( à ajouter dans totalcosts)
+	else 
+	 => prosumer tariff ;)
+*/
+
+# 
+
 ##########################
 ### OBJECTIVE FUNCTION ###
 ##########################
 
 # Can choose between TotalGWP and TotalCost
 minimize obj: TotalCost;
-
 
 /*
 
