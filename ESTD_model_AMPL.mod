@@ -36,6 +36,7 @@ set END_USES_TYPES_OF_CATEGORY {END_USES_CATEGORIES}; # Types of demand (end-use
 set RESOURCES; # Resources: fuels (renewables and fossils) and electricity imports
 set BIOFUELS within RESOURCES; # imported biofuels.
 set EXPORT within RESOURCES; # exported resources
+set ELECTRANSFER within RESOURCES;
 set END_USES_TYPES := setof {i in END_USES_CATEGORIES, j in END_USES_TYPES_OF_CATEGORY [i]} j; # secondary set
 set TECHNOLOGIES_OF_END_USES_TYPE {END_USES_TYPES}; # set all energy conversion technologies (excluding storage technologies and infrastructure)
 set STORAGE_TECH; #  set of storage technologies 
@@ -146,7 +147,6 @@ var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of th
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
 
-var Cin
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -179,12 +179,12 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 ## Cost
 #------
 
-# [Eq. 1]	
+# [Eq. 1]
 subject to totalcost_cal:
-TotalCost = (if C_op ["ELEC_EXPORT"] <= 0 then
+TotalCost = (if c_op ["ELECTRICITY"] + c_op ["ELEC_EXPORT"] <= 0 then
 	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i])
 else
-	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] - C_op ["ELEC_EXPORT"]) );
+	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES diff EXPORT} C_op [i] - C_op ["ELEC_EXPORT"]) );
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
