@@ -181,10 +181,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = (if c_op ["ELECTRICITY"] + c_op ["ELEC_EXPORT"] <= 0 then
-	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i])
-else
-	(sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES diff EXPORT} C_op [i] - C_op ["ELEC_EXPORT"]) );
+TotalCost = (sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i]);
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -375,6 +372,10 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 # [Eq. 39] Energy efficiency is a fixed cost
 subject to extra_efficiency:
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);	
+
+# [PoC] Export when Net-Metering
+subject to net_metering:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
 
 ##########################
 ### OBJECTIVE FUNCTION ###
