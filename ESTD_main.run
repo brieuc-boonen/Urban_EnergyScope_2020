@@ -545,14 +545,14 @@ param PathName symbolic default "output/";
 			in STORAGE_OF_END_USES_TYPES["ELECTRICITY"] }(Storage_in [i, "ELECTRICITY", h, td]
 			)                                                                                         ) , "Electricity", "#00BFFF",
 			"TWh" > ( PathName & "/input2sankey.csv");
+			
 			if sum{i in STORAGE_OF_END_USES_TYPES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "ELECTRICITY", h, td]) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Storage" , "Elec demand", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(sum {i
-			in STORAGE_OF_END_USES_TYPES["ELECTRICITY"] }                                                        (Storage_out [i, "ELECTRICITY", h, td] / storage_eff_out [i,
-			"ELECTRICITY"])  ) , "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
+			in STORAGE_OF_END_USES_TYPES["ELECTRICITY"] }                                                        (Storage_out [i, "ELECTRICITY", h, td] )  ) , "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
+
 			if sum{i in STORAGE_OF_END_USES_TYPES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "ELECTRICITY", h, td]) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Storage" , "Exp & Loss", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (sum {i
-			in STORAGE_OF_END_USES_TYPES["ELECTRICITY"] }((Storage_in [i, "ELECTRICITY", h, td])- (Storage_out [i, "ELECTRICITY", h, td] / storage_eff_out [i,
-			"ELECTRICITY"]))  ) , "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
+			in STORAGE_OF_END_USES_TYPES["ELECTRICITY"] }((Storage_in [i, "ELECTRICITY", h, td])- (Storage_out [i, "ELECTRICITY", h, td] ))  ) , "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
 
 
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC", h,
@@ -736,10 +736,10 @@ param PathName symbolic default "output/";
 			# Sto in  : sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_in  [i, "HEAT_LOW_T_DHN", h, td])
 			# Sto out : sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_out [i, "HEAT_LOW_T_DHN", h, td])
 			if sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in  [i, "HEAT_LOW_T_DHN", h, td]) > 0.001 then
-				printf "%s,%s,%.2f,%s,%s,%s\n", "DHN" , "DHN Sto", sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_in  [i, "HEAT_LOW_T_DHN", h, td])/1000
+				printf "%s,%s,%.2f,%s,%s,%s\n", "DHN" , "DHN Sto", sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_in  [i, "HEAT_LOW_T_DHN", h, td])
 				, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_out  [i, "HEAT_LOW_T_DHN", h, td]) > 0.001 then
-				printf "%s,%s,%.2f,%s,%s,%s\n", "DHN Sto" , "Heat LT DHN", sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_out  [i, "HEAT_LOW_T_DHN", h, td])/1000
+				printf "%s,%s,%.2f,%s,%s,%s\n", "DHN Sto" , "Heat LT DHN", sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DHN"],t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (Storage_out  [i, "HEAT_LOW_T_DHN", h, td])
 				, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 						#Storage Dec :
 
