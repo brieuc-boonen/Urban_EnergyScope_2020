@@ -377,13 +377,14 @@ subject to extra_efficiency:
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);	
 
 # [PoC] Export when Net-Metering
+/*
 subject to net_metering:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
-
-# [PoC] Import when Feed_in
-/*subject to feed_in_tariff:
-	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 */
+# [PoC] Import when Feed_in
+subject to feed_in_tariff:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
+
 
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 /*
