@@ -46,8 +46,6 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 param PathName symbolic default "output/";
 
-		let re_share_primary := 0.5;
-
 		print PathName;
 
 		# Saving and starting from last solution. Starting from last solution is not very efficient.
