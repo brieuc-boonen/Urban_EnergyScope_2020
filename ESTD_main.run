@@ -22,8 +22,8 @@ data ESTD_12TD.dat; # TDs depending data
 ################################################################################
 ################################################################################
 
-#option solver cplex; # for Windows users
-option solver './cplex'; # for Mac users
+option solver cplex; # for Windows users
+#option solver './cplex'; # for Mac users
 
 option show_stats 1; # show statistics
 
@@ -356,7 +356,8 @@ param PathName symbolic default "output/";
 			#------------------------------------------
             # PARAMETERS INFOs
             #------------------------------------------
-            print "--------- SAVING Parameters Infos --------";
+            /*
+			print "--------- SAVING Parameters Infos --------";
             printf "\n Autocons [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_Uses ["ELECTRICITY", h, td])/((sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td])+(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out["ELECTRICITY", "ELECTRICITY"] * F_t ["ELECTRICITY_FEED_IN", h, td])) > ( PathName & "/Parameters_Infos.txt");
             printf "\n Autosuff [%] = " > ( PathName & "/Parameters_Infos.txt");
@@ -365,7 +366,7 @@ param PathName symbolic default "output/";
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", re_share_primary > ( PathName & "/Parameters_Infos.txt");
-
+			*/
 
 			################################################################################
 			################################################################################

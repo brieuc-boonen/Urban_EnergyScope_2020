@@ -290,8 +290,8 @@ subject to network_losses {eut in END_USES_TYPES, h in HOURS, td in TYPICAL_DAYS
 	Network_losses [eut,h,td] = (sum {j in RESOURCES union TECHNOLOGIES diff STORAGE_TECH: layers_in_out [j, eut] > 0} ((layers_in_out[j, eut]) * F_t [j, h, td])) * loss_network [eut];
 
 # [Eq. 21] 9.4 BCHF is the extra investment needed if there is a big deployment of stochastic renewables
-subject to extra_grid:
-	F ["GRID"] = 1 + (c_grid_extra / c_inv["GRID"]) * (F ["WIND"] + F ["PV"]) / (f_max ["WIND"] + f_max ["PV"]);
+/*subject to extra_grid:
+	F ["GRID"] = 1 + (c_grid_extra / c_inv["GRID"]) * (F ["WIND"] + F ["PV"]) / (f_max ["WIND"] + f_max ["PV"]);*/
 
 # [Eq. 22] DHN: assigning a cost to the network
 subject to extra_dhn:
@@ -386,7 +386,11 @@ subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
 
-# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
+
+/*# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  
+subject to auto_consumption_parameter
+	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( End_Uses ["ELECTRICITY", h, td] ) - (sum {j in RESOURCES union TECHNOLOGIES diff ELECTRICITY diff ELECTRICITY_FEED_IN, t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (End_Uses ["ELECTRICITY", h, td] + layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] ) ) >=	auto_consumption_rate * sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_Uses ["ELECTRICITY",h, td];
+*/
 /*
 subject to prosumer_policy: 
 	Prosumer_tax = F ["PV"] * 0.085*910; #with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
