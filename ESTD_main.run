@@ -351,9 +351,9 @@ param PathName symbolic default "output/";
 				printf " %f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 								End_Uses [l, h, td] > ( PathName & "/YearBalance.txt");
 			}
-			
 
-			#------------------------------------------
+
+/*			#------------------------------------------
             # PARAMETERS INFOs
             #------------------------------------------
             print "--------- SAVING Parameters Infos --------";
@@ -365,7 +365,7 @@ param PathName symbolic default "output/";
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", re_share_primary > ( PathName & "/Parameters_Infos.txt");
-
+*/
 
 			################################################################################
 			################################################################################

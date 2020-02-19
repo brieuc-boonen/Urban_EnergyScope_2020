@@ -149,7 +149,7 @@ var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of
 var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
-#var Prosumer_tax >=0;
+var Prosumer_tax >=0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -184,7 +184,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = (sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i]); #+ Prosumer_tax;
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] ;#+ Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -376,8 +376,8 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 subject to extra_efficiency:
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);	
 
-# [PoC] Export when Net-Metering
 /*
+# [PoC] Export when Net-Metering
 subject to net_metering:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
 */
@@ -385,11 +385,10 @@ subject to net_metering:
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
-
-# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 /*
+# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
-	Prosumer_tax = F ["PV"] * 0.085*910; #with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
+	Prosumer_tax = (F ["PV"] * 0.085 * 910); #with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
 */
 
 # 
