@@ -294,8 +294,8 @@ subject to network_losses {eut in END_USES_TYPES, h in HOURS, td in TYPICAL_DAYS
 	F ["GRID"] = 1 + (c_grid_extra / c_inv["GRID"]) * (F ["WIND"] + F ["PV"]) / (f_max ["WIND"] + f_max ["PV"]);*/
 
 # [Eq. 22] DHN: assigning a cost to the network
-subject to extra_dhn:
-	F ["DHN"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"]} (F [j]);
+/*subject to extra_dhn:
+	F ["DHN"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"]} (F [j]);*/
 
 # [Eq. 23] Power2Gas investment cost is calculated on the max size of the two units
 subject to Power2gas_1:
@@ -373,8 +373,8 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j,h,td] * t_op[h,td]) >= fmin_perc [j] * sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j2, h, td] * t_op[h,td]);
 
 # [Eq. 39] Energy efficiency is a fixed cost
-subject to extra_efficiency:
-	F ["EFFICIENCY"] = 1 / (1 + i_rate);	
+/*subject to extra_efficiency:
+	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/	
 
 # [PoC] Export when Net-Metering
 /*
