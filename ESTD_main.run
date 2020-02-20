@@ -366,12 +366,7 @@ param PathName symbolic default "output/";
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", re_share_primary > ( PathName & "/Parameters_Infos.txt");
-<<<<<<< HEAD
 */
-=======
-			
-			*/
->>>>>>> dc963130a8e041a23ae336949a47bae163164862
 
 			################################################################################
 			################################################################################

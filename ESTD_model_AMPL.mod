@@ -385,15 +385,6 @@ subject to net_metering:
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
-<<<<<<< HEAD
-=======
-
-
-/*# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  
-subject to auto_consumption_parameter
-	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( End_Uses ["ELECTRICITY", h, td] ) - (sum {j in RESOURCES union TECHNOLOGIES diff ELECTRICITY diff ELECTRICITY_FEED_IN, t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (End_Uses ["ELECTRICITY", h, td] + layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] ) ) >=	auto_consumption_rate * sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_Uses ["ELECTRICITY",h, td];
-*/
->>>>>>> dc963130a8e041a23ae336949a47bae163164862
 /*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
