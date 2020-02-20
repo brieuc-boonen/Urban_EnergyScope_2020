@@ -137,7 +137,7 @@ var Shares_Mobility_Passenger {TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSE
 var Shares_LowT_Dec {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}>=0 ; # %_HeatDec [-]: Constant share of heat Low T decentralised + its specific thermal solar
 var F_Solar         {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
 var F_t_Solar       {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
-
+var X_active {TECHNOLOGIES} binary;
 
 ##Dependent variables [Table 4] :
 var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
@@ -218,10 +218,21 @@ subject to gwp_op_calc {i in RESOURCES}:
 	
 ## Multiplication factor
 #-----------------------
-	
+
 # [Eq. 9] min & max limit to the size of each technology
-subject to size_limit {j in TECHNOLOGIES}:
-	f_min [j] <= F [j] <= f_max [j];
+subject to size_limit_min {j in TECHNOLOGIES}:
+	F [j] >= f_min [j] * X_active [j];
+subject to size_limit_max {j in TECHNOLOGIES}:
+	F [j] <= f_max [j] * X_active [j];
+/*
+# [Eq. 9] min & max limit to the size of each technology
+subject to size_limit_max {j in TECHNOLOGIES}:
+	F [j] <= f_max [j];
+
+subject to size_limit_min {j in TECHNOLOGIES}:
+	F [j] != 0 ==>
+      F [j] >= f_min [j];
+*/
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
 subject to capacity_factor_t {j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}:
@@ -367,12 +378,14 @@ subject to Minimum_RE_share :
 	sum {j in RE_RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t [j, h, td] * t_op [h, td] 
 	>=	re_share_primary *
 	sum {j in RESOURCES, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t [j, h, td] * t_op [h, td]	;
-		
+
+/*		
 # [Eq. 38] Definition of min/max output of each technology as % of total output in a given layer. 
 subject to f_max_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE[eut]}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j,h,td] * t_op[h,td]) <= fmax_perc [j] * sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j2, h, td] * t_op[h,td]);
 subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE[eut]}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j,h,td] * t_op[h,td]) >= fmin_perc [j] * sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[eut], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [j2, h, td] * t_op[h,td]);
+*/
 
 # [Eq. 39] Energy efficiency is a fixed cost
 /*subject to extra_efficiency:

@@ -227,7 +227,7 @@ subject to gwp_op_calc {i in RESOURCES}:
 	
 # [Eq. 9] min & max limit to the size of each technology
 subject to size_limit {j in TECHNOLOGIES}:
-	f_min [j] <= F [j] <= f_max [j];
+	F [j] <= f_max [j];
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
 subject to capacity_factor_t {j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}:
