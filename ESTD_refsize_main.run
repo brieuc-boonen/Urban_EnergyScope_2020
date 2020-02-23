@@ -541,9 +541,13 @@ param PathName symbolic default "output/";
 			TYPICAL_DAY_OF_PERIOD[t]}(-layers_in_out["TRAIN_FREIGHT","ELECTRICITY"] * F_t ["TRAIN_FREIGHT", h, td]  )  ,
 			"Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
 
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}( F_t ["ELEC_EXPORT", h, td]  ) > 0.001 then
-				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Export", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(- layers_in_out["ELEC_EXPORT","ELECTRICITY"] * F_t ["ELEC_EXPORT", h, td]  )
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}( F_t ["ELEC_EXPORT", h, td] + F_t ["ELEC_EXPORT_FREE", h, td] ) > 0.001 then
+				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Export", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(- layers_in_out["ELEC_EXPORT","ELECTRICITY"] * F_t ["ELEC_EXPORT", h, td] - layers_in_out["ELEC_EXPORT_FREE","ELECTRICITY"] * F_t ["ELEC_EXPORT_FREE", h, td]  )
 			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
+
+			/*if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}( F_t ["ELEC_EXPORT_FREE", h, td]  ) > 0.001 then
+				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Export_free", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(- layers_in_out["ELEC_EXPORT_FREE","ELECTRICITY"] * F_t ["ELEC_EXPORT_FREE", h, td]  )
+			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");*/
 
 /*			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Network_losses ["ELECTRICITY", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Export", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Network_losses
@@ -586,11 +590,11 @@ param PathName symbolic default "output/";
 			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["DEC_DIRECT_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_DIRECT_ELEC", h, td]
 					- ((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))))
 			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_DIRECT_ELEC", h, td]  ) > 0.001 then
+			/*if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_DIRECT_ELEC", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Heat LT Dec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["DEC_DIRECT_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_DIRECT_ELEC", h, td]
 					- ((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))))
-			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
+			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");*/
 			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]: Storage_in["TS_DEC_DIRECT_ELEC", "HEAT_LOW_T_DECEN", h, td] > Storage_out["TS_DEC_DIRECT_ELEC", "HEAT_LOW_T_DECEN", h, td] }
 			    	((Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td])*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
 						printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Dec. Sto",
