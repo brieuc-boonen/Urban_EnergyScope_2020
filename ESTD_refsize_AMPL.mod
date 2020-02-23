@@ -137,7 +137,7 @@ var Shares_Mobility_Passenger {TECHNOLOGIES_OF_END_USES_CATEGORY["MOBILITY_PASSE
 var Shares_LowT_Dec {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}}>=0 ; # %_HeatDec [-]: Constant share of heat Low T decentralised + its specific thermal solar
 var F_Solar         {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
 var F_t_Solar       {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
-
+var X_active {TECHNOLOGIES} binary;
 
 ##Dependent variables [Table 4] :
 var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
@@ -226,8 +226,10 @@ subject to gwp_op_calc {i in RESOURCES}:
 #-----------------------
 	
 # [Eq. 9] min & max limit to the size of each technology
-subject to size_limit {j in TECHNOLOGIES}:
-	F [j] <= f_max [j];
+subject to size_limit_min {j in TECHNOLOGIES}:
+	F [j] >= f_min [j] * X_active [j];
+subject to size_limit_max {j in TECHNOLOGIES}:
+	F [j] <= f_max [j] * X_active [j];
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
 subject to capacity_factor_t {j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}:

@@ -197,17 +197,17 @@ DHN_COGEN_WASTE	        20	        2927.87	111.32	647.82	    25	        0.85	0	 
 DHN_BOILER_GAS	        10	        58.8913	1.1799	12.32	    17	        0.95	0	        1	        0.1	    0
 DHN_BOILER_WOOD	        10	        115.179 2.3036	28.87	    17	        0.9	    0	        1	        0.1	    0
 DHN_BOILER_OIL	        10	        54.8553	1.1799	12.32	    17	        0.95	0	        1	        0.1	    0
-DEC_HP_ELEC	            3	        492.040 21.050	164.89	    18	        1	    0	        1	        3	    30  # real_f_min : 6.5 (air-eau) (telephone thema)
-DEC_THHP_GAS	        1           315.685	9.4671	381.93	    20	        1	    0	        1	        1	    30  # same (not sure)
-DEC_COGEN_GAS	        1	        1408.03	92.612	1024.32	    20	        1	    0	        1	        0.5	    30  # real_f_min : 1 (H.I. Onovwiona)
-DEC_COGEN_OIL	        1	        1305.56	81.965	1024.32	    20	        1	    0	        1	        0.5	    30  # same OM as above (reasonable)
-DEC_ADVCOGEN_GAS	    0.3	        7242.27	144.84	2193.45	    20	        1	    0	        1	        0.2	    30  # real_f_min : 0.3 (ENGIE)
-DEC_ADVCOGEN_H2	        0.3	        7242.27	144.84	2193.45	    20	        1	    0	        1	        0.2	    30  # same
-DEC_BOILER_GAS	        1	        158.535	4.7570	21.09	    17	        1	    0	        1	        0.1	    30  # min real_f_min : 6-10
-DEC_BOILER_WOOD	        1	        462.440	16.181	21.09	    17	        1	    0	        1	        0.1	    30  # min real_f_min : 6-10
-DEC_BOILER_OIL	        1	        142.382	8.5401	21.09	    17	        1	    0	        1	        0.1	    30  # min real_f_min : 6-10
-DEC_SOLAR	            0.25	    719.074	8.0906	221.22	    20	        1	    0	        1	        0.25	20  # same OM PV
-DEC_DIRECT_ELEC	        1	        39.9757	0.1779  1.47	    15	        1	    0	        1	        0.1	    30  # min
+DEC_HP_ELEC	            0.5        492.040 21.050	164.89	    18	        1	    0	        1	            3/*3*/	    30  # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_THHP_GAS	        0.5           315.685	9.4671	381.93	    20	        1	    0	        1	        1/*1*/	    30  # same (not sure)
+DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	       1/*0.5*/	    30  # real_f_min : 1 (H.I. Onovwiona)
+DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	       1/*0.5*/	    30  # same OM as above (reasonable)
+DEC_ADVCOGEN_GAS	    0.5	        7242.27	144.84	2193.45	    20	        1	    0	        1	     0.3/*0.2*/	    30  # real_f_min : 0.3 (ENGIE)
+DEC_ADVCOGEN_H2	        0.5	        7242.27	144.84	2193.45	    20	        1	    0	        1	      0.3/*0.2*/    30  # same
+DEC_BOILER_GAS	        0.5	        158.535	4.7570	21.09	    17	        1	    0	        1	       1/*0.1*/	    30  # min real_f_min : 6-10
+DEC_BOILER_WOOD	        0.5	        462.440	16.181	21.09	    17	        1	    0	        1	       1/*0.1*/	    30  # min real_f_min : 6-10
+DEC_BOILER_OIL	        0.5	        142.382	8.5401	21.09	    17	        1	    0	        1	       1/*0.1*/	    30  # min real_f_min : 6-10
+DEC_SOLAR	            0.25	    719.074	8.0906	221.22	      20	        1	    0	        1	        0.25	        0  # same OM PV
+DEC_DIRECT_ELEC	        0.5       39.9757	0.1779  1.47	    15	        1	    0	        1	        1/*0.1*/	    30  # min
 TRAMWAY_TROLLEY	1	0	0	0	1	1	0	0.3	0.1	16.7
 BUS_COACH_DIESEL	1	0	0	0	1	1	0	0.3	0.1	16.7
 BUS_COACH_HYDIESEL	1	0	0	0	1	1	0	0.3	0.1	16.7
@@ -264,7 +264,7 @@ BIOETHANOL	0	0	0.082366044
 BIODIESEL	0	0	0.079743788
 LFO	1000000	0.3115	0.056740267
 LNG	0	0.2666	0.045 #0.041454118 # no price in BEL data so set same as NG
-NG	1000000	0	0.045 #0.041454118
+NG	1000000	0	0.01 #0.041454118
 NG_CCS	1000000	0.0118	0.045 #0.041454118
 SNG	0	0.0118	0.041454118
 WOOD	12279	0.4014	0.045#0.02664
