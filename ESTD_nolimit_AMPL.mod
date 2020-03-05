@@ -78,7 +78,7 @@ param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
-param auto_consumption_rate >= 0;
+param auto_consumption_rate >= 0, <=100;
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -113,6 +113,8 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
+param autocons_target >= 0;
+param m >= 1000;
 
 
 ##Additional parameter (not presented in the paper)
@@ -138,6 +140,7 @@ var Shares_LowT_Dec {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DE
 var F_Solar         {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} >=0; # F_sol [GW]: Solar thermal installed capacity per heat decentralised technologies
 var F_t_Solar       {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, h in HOURS, td in TYPICAL_DAYS} >= 0; # F_t_sol [GW]: Solar thermal operating per heat decentralised technologies
 var X_active {TECHNOLOGIES} binary;
+var Pros_tax binary;
 
 ##Dependent variables [Table 4] :
 var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
@@ -186,7 +189,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] ;#+ Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -215,7 +218,7 @@ subject to gwp_constr_calc {j in TECHNOLOGIES}:
 subject to gwp_op_calc {i in RESOURCES}:
 	GWP_op [i] = gwp_op [i] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [i, h, td] * t_op [h, td] );	
 
-	
+
 ## Multiplication factor
 #-----------------------
 
@@ -389,13 +392,18 @@ subject to net_metering:
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
-/*
+
+# Autoconsumption rate 
+#subject to auto_consumption:
+#	Auto_consumption_rate = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (100*(layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td] + layers_in_out["ELEC_EXPORT","ELECTRICITY"] * F_t ["ELEC_EXPORT", h, td])) / (sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]));
+	
+	
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
-	Prosumer_tax = (F ["PV"] * 0.085 * 910); #with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
-*/
+	autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
+	m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
+	F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
 
-# 
 
 ##########################
 ### OBJECTIVE FUNCTION ###
