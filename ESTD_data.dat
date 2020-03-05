@@ -88,8 +88,11 @@ set BOILERS	:=	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL	DEC_BOILER_GAS	DEC_
 ## PARAMETERS presented in Table 2.
 param i_rate := 	0.015	; # part [2.7.4]
 param re_share_primary := 	0;
-#param auto_consumption_rate := 0.3;
+param auto_consumption_rate := 30; #%
 param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
+param m := 10000;
+param autocons_target := 37.74; #%
+
 
 # Part [2.4]
 param : Batt_per_Car := #ev_batt,size [GWh]: Size of batteries per car per technology of EV
