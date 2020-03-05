@@ -79,6 +79,7 @@ param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_deman
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 param auto_consumption_rate >= 0, <=100;
+param auto_sufficiancy_rate >= 0, <=100;
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -396,13 +397,25 @@ subject to feed_in_tariff:
 # Autoconsumption rate 
 #subject to auto_consumption:
 #	Auto_consumption_rate = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (100*(layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td] + layers_in_out["ELEC_EXPORT","ELECTRICITY"] * F_t ["ELEC_EXPORT", h, td])) / (sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]));
-	
-	
+
+#Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
+subject to Minimum_auto_consumption_rate :
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t ["PV", h, td] * t_op [h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td] - F_t ["ELEC_EXPORT", h, td])
+	>=	auto_consumption_rate/100 *
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t ["PV", h, td] * t_op [h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]);
+
+#Minimum Auto sufficiancy 
+subject to Minimum_auto_sufficiancy_rate :
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
+	>=	auto_sufficiancy_rate/100 *
+	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
+
+ 
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
-subject to prosumer_policy: 
-	autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
-	m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
-	F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
+#subject to prosumer_policy: 
+#	autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
+#	m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
+#	F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
 
 
 ##########################
