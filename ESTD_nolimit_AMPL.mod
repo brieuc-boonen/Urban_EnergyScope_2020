@@ -36,15 +36,18 @@ set END_USES_TYPES_OF_CATEGORY {END_USES_CATEGORIES}; # Types of demand (end-use
 set RESOURCES; # Resources: fuels (renewables and fossils) and electricity imports
 set BIOFUELS within RESOURCES; # imported biofuels.
 set EXPORT within RESOURCES; # exported resources
+set IMPORT_FEED_IN within RESOURCES; 
 set ELECTRANSFER within RESOURCES;
 set END_USES_TYPES := setof {i in END_USES_CATEGORIES, j in END_USES_TYPES_OF_CATEGORY [i]} j; # secondary set
 set TECHNOLOGIES_OF_END_USES_TYPE {END_USES_TYPES}; # set all energy conversion technologies (excluding storage technologies and infrastructure)
+set HOME_TECHNOLOGIES {END_USES_TYPES};
 set STORAGE_TECH; #  set of storage technologies 
 set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
 
+
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
-set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT) union END_USES_TYPES; # Layers are used to balance resources/products in the system
+set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
 set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE; 
 set TECHNOLOGIES_OF_END_USES_CATEGORY {i in END_USES_CATEGORIES} within TECHNOLOGIES := setof {j in END_USES_TYPES_OF_CATEGORY[i], k in TECHNOLOGIES_OF_END_USES_TYPE [j]} k;
 set RE_RESOURCES within RESOURCES; # List of RE resources (including wind hydro solar), used to compute the RE share
@@ -59,7 +62,7 @@ set TYPICAL_DAY_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAY
 set HOUR_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAYS: (t,h,td) in T_H_TD} h; #H_OF_PERIOD(T)
 
 ## Additional SETS: only needed for printing out results (not represented in Figure 3).
-set COGEN within TECHNOLOGIES; # cogeneration tech
+set COGEN within TECHNOLOGIES; # cogeneration tech;
 set BOILERS within TECHNOLOGIES; # boiler tech
 
 #################################
@@ -78,7 +81,8 @@ param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
-param auto_consumption_rate >= 0, <=100;
+param auto_consumption_rate_low >= 0, <=1;
+param auto_consumption_rate_up >= 0, <=1;
 param auto_sufficiancy_rate >= 0, <=100;
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
@@ -115,7 +119,6 @@ param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coeffic
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
 param autocons_target >= 0;
-param m >= 1000;
 
 
 ##Additional parameter (not presented in the paper)
@@ -384,39 +387,39 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 /*subject to extra_efficiency:
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/	
 
-/*
-# [PoC] Export when Net-Metering
-subject to net_metering:
-	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
-*/
+
 # [PoC] Import when Feed_in
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
 
-# Autoconsumption rate 
-#subject to auto_consumption:
-#	Auto_consumption_rate = sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (100*(layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td] + layers_in_out["ELEC_EXPORT","ELECTRICITY"] * F_t ["ELEC_EXPORT", h, td])) / (sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]));
+#Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
+subject to Minimum_auto_consumption_rate_low :
+	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
+	>=	auto_consumption_rate_low*
+	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
 
 #Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
-subject to Minimum_auto_consumption_rate :
-	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t ["PV", h, td] * t_op [h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td] - F_t ["ELEC_EXPORT", h, td])
-	>=	auto_consumption_rate/100 *
-	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t ["PV", h, td] * t_op [h, td] + layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] + layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]);
+subject to Minimum_auto_consumption_rate_up :
+	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
+	<=	auto_consumption_rate_up*
+	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
+
 
 #Minimum Auto sufficiancy 
 subject to Minimum_auto_sufficiancy_rate :
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
-	>=	auto_sufficiancy_rate/100 *
+	>=	auto_sufficiancy_rate*
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
 
- 
-# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
-#subject to prosumer_policy: 
-#	autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
-#	m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
-#	F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
 
+ /*
+# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
+subject to prosumer_policy: 
+autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
+F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
+m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
+*/ 
 
 ##########################
 ### OBJECTIVE FUNCTION ###

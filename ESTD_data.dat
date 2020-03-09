@@ -32,10 +32,11 @@
 set SECTORS := 	HOUSEHOLDS	SERVICES	TRANSPORTATION;
 set END_USES_INPUT := 	ELECTRICITY	LIGHTING	HEAT_LOW_T_SH	HEAT_LOW_T_HW	MOBILITY_PASSENGER	MOBILITY_FREIGHT;
 set END_USES_CATEGORIES := 	ELECTRICITY	HEAT_LOW_T	MOBILITY_PASSENGER	MOBILITY_FREIGHT;
-set RESOURCES :=	ELECTRICITY GASOLINE	DIESEL	BIOETHANOL	BIODIESEL	LFO	LNG	NG	NG_CCS	SNG	WOOD WASTE	H2	ELEC_EXPORT ELEC_EXPORT_FREE    ELECTRICITY_FEED_IN RES_WIND RES_SOLAR;
+set RESOURCES :=	ELECTRICITY GASOLINE	DIESEL	BIOETHANOL	BIODIESEL	LFO	LNG	NG	NG_CCS	SNG	WOOD WASTE	H2	ELEC_EXPORT ELECTRICITY_FEED_IN RES_WIND RES_SOLAR;
 set BIOFUELS :=	BIOETHANOL	BIODIESEL	SNG;
 set RE_RESOURCES :=	 BIOETHANOL	BIODIESEL	SNG WOOD RES_WIND RES_SOLAR;
-set EXPORT := 	ELEC_EXPORT ELEC_EXPORT_FREE    ELECTRICITY_FEED_IN;
+set EXPORT := 	ELEC_EXPORT;
+set IMPORT_FEED_IN := ELECTRICITY_FEED_IN;
 
 set END_USES_TYPES_OF_CATEGORY["ELECTRICITY"] :=	ELECTRICITY;
 set END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"] :=	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN;
@@ -49,6 +50,8 @@ set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"] := 	TRAMWAY_TROLLEY	BUS_COACH_DI
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PRIVATE"] := 	CAR_GASOLINE	CAR_DIESEL	CAR_NG	CAR_HEV	CAR_PHEV	CAR_BEV	CAR_FUEL_CELL;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_RAIL"] :=	 TRAIN_FREIGHT;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_ROAD"] := 	TRUCK;
+
+set HOME_TECHNOLOGIES["ELECTRICITY"] := PV DEC_COGEN_GAS DEC_COGEN_OIL DEC_ADVCOGEN_GAS DEC_ADVCOGEN_H2 ;
 
 set STORAGE_TECH :=	LNG_STO	 PHES BATT_LI 	BEV_BATT 	PHEV_BATT 	TS_DEC_HP_ELEC	 TS_DEC_DIRECT_ELEC	  TS_DHN_DAILY	  TS_DHN_SEASONAL	 TS_DEC_THHP_GAS	TS_DEC_COGEN_GAS	TS_DEC_COGEN_OIL	TS_DEC_ADVCOGEN_GAS	TS_DEC_ADVCOGEN_H2	TS_DEC_BOILER_GAS	TS_DEC_BOILER_WOOD	TS_DEC_BOILER_OIL;
 set INFRASTRUCTURE  :=	EFFICIENCY	DHN	GRID POWER2GAS_in	POWER2GAS_out	POWER2GAS 	H2_ELECTROLYSIS 	H2_NG	H2_BIOMASS	GASIFICATION_SNG	PYROLYSIS;
@@ -88,10 +91,10 @@ set BOILERS	:=	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL	DEC_BOILER_GAS	DEC_
 ## PARAMETERS presented in Table 2.
 param i_rate := 	0.015	; # part [2.7.4]
 param re_share_primary := 	0;
-param auto_consumption_rate := 50; #%
-param auto_sufficiancy_rate := 100; #%
+param auto_consumption_rate_low := 0; 
+param auto_consumption_rate_up := 1; 
+param auto_sufficiancy_rate := 0; 
 param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
-param m := 10000;
 param autocons_target := 37.74; #%
 
 
@@ -138,7 +141,6 @@ WOOD	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0
 WASTE	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0
 H2	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
 ELEC_EXPORT	-1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
-ELEC_EXPORT_FREE	-1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 ELECTRICITY_FEED_IN	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 RES_WIND 	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0
 RES_SOLAR  	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
@@ -205,12 +207,12 @@ DHN_BOILER_WOOD	        10	        115.179 2.3036	28.87	    17	        0.9	    0
 DHN_BOILER_OIL	        10	        54.8553	1.1799	12.32	    17	        0.95	0	        1	        0.1	    0
 DEC_HP_ELEC	            2.5         440     64.800	164.89	    12	        1	    0	        1	        2.5	    30          # real_f_min : 6.5 (air-eau) (telephone thema)
 #DEC_HP_ELEC_G2A	    4           1750    67.750	164.89	    18	        1	    0	        1	        4   	32          # real_f_min : 6.5 (air-eau) (telephone thema)
-DEC_THHP_GAS	        0.5         400	    7.8333	381.93	    20	        1	    0	        1	        30  	0           # same (not sure)
+DEC_THHP_GAS	        0.5         400	    7.8333	381.93	    20	        1	    0	        1	        30  	60           # same (not sure)
 #DEC_THHP_GAS_G2A	    0.5         490	    7.8333	381.93	    20	        1	    0	        1	        30  	0           # same (not sure)
-DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	        1       0           # real_f_min : 1 (H.I. Onovwiona)
-DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	        1       0           # same OM as above (reasonable)
-DEC_ADVCOGEN_GAS	    0.5	        10084   672.26	2193.45	    20	        1	    0	        1	        1.19	0           # real_f_min : 0.3 (ENGIE)
-DEC_ADVCOGEN_H2	        0.1	        15714.2	1000	2193.45	    20	        1	    0	        1	        0.70    0           # same
+DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	        1       30           # real_f_min : 1 (H.I. Onovwiona)
+DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	        1       30           # same OM as above (reasonable)
+DEC_ADVCOGEN_GAS	    0.5	        10084   672.26	2193.45	    20	        1	    0	        1	        1.19	30           # real_f_min : 0.3 (ENGIE)
+DEC_ADVCOGEN_H2	        0.1	        15714.2	1000	2193.45	    20	        1	    0	        1	        0.70    30           # same
 DEC_BOILER_GAS	        0.5	        310	    19.500	21.09	    20	        1	    0	        1	        10	    30          # min real_f_min : 6-10
 DEC_BOILER_WOOD	        0.5	        680 	48.800	21.09	    20	        1	    0	        1	        10	    70          # min real_f_min : 6-10
 DEC_BOILER_OIL	        0.5	        393.333	15.600	21.09	    20	        1	    0	        1	        15	    30          # min real_f_min : 6-10
@@ -266,6 +268,7 @@ TS_DHN_SEASONAL	        0.01	    0.54	0.003	0	        25	        1	    0	       
 # RESOURCES: part [2.5] (Table 26)
 param:	avail	gwp_op	c_op	:=
 ELECTRICITY	1000000	0.4818	0.22 #0.084335191
+ELECTRICITY_FEED_IN 1000000	0   0#0.137477 (data Notion Wallonie)
 GASOLINE	1000000	0.3448	0.082366044
 DIESEL	1000000	0.3148	0.079743788
 BIOETHANOL	0	0	0.082366044
@@ -279,8 +282,6 @@ WOOD	12279	0.4014	0.045#0.02664
 WASTE	11142	0.0039	0.02664
 H2	0	0.1501	0
 ELEC_EXPORT	1000000	0	0 #-0.084335191
-ELEC_EXPORT_FREE	1000000	0	0 #-0.084335191
-ELECTRICITY_FEED_IN 1000000	0   0.08 #0.137477 (data Notion Wallonie)
 RES_WIND	1000000	0	0
 RES_SOLAR	1000000	0	0
 ;
