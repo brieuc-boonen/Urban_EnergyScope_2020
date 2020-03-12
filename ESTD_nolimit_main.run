@@ -337,14 +337,14 @@ param PathName symbolic default "output/";
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
 				printf "\n %s \t", gsub(i,"F","Capitalf") > ( PathName & "/YearBalance.txt");
 				for {l in LAYERS}{
-					printf " %f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+					printf "%f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 									layers_in_out[i, l] * F_t [i, h, td] > ( PathName & "/YearBalance.txt");
 				}
 			}
 			for {j in STORAGE_TECH}{
 				printf "\n %s \t", gsub(j,"F","Capitalf") > ( PathName & "/YearBalance.txt");
 				for {l in LAYERS}{
-					printf " %f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+					printf "%f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 									(Storage_out [j, l, h, td] - Storage_in [j, l, h, td]) > ( PathName & "/YearBalance.txt");
 				}
 			}
