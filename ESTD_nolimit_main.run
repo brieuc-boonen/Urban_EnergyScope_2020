@@ -22,8 +22,8 @@ data ESTD_12TD.dat; # TDs depending data
 ################################################################################
 ################################################################################
 
-option solver cplex; # for Windows users
-#option solver './cplex'; # for Mac users
+#option solver cplex; # for Windows users
+option solver './cplex'; # for Mac users
 
 option show_stats 1; # show statistics
 
@@ -133,7 +133,7 @@ param PathName symbolic default "output/";
 						0, #sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (F_t [tech,h,td] ) / sum {j2 in TECHNOLOGIES_OF_END_USES_TYPE[i], t2 in PERIODS, h2 in HOUR_OF_PERIOD[t2], td2 in TYPICAL_DAY_OF_PERIOD[t2]} (F_t [j2, h2, td2] ),
 						fmax_perc[tech],c_p[tech],tau[tech],GWP_constr[tech] > ( PathName & "/Assets.txt");
 			}
-			for {tech in STORAGE_TECH union INFRASTRUCTURE}{
+			for {tech in STORAGE_TECH union INFRASTRUCTURE union RENOVATION}{
 				printf "\n%s\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t",gsub(tech,"F","Capitalf"),
 						C_inv[tech],C_maint[tech],lifetime[tech],f_min[tech],F[tech],f_max[tech],
 						fmin_perc[tech],
@@ -365,7 +365,7 @@ param PathName symbolic default "output/";
 			printf "\n auto_consumption_rate_input_up [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*auto_consumption_rate_up > ( PathName & "/Parameters_Infos.txt");
 			printf "\n auto_consumption_rate_real [%] = " > ( PathName & "/Parameters_Infos.txt");
-            printf "%f", 100*(sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]) - sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t ["ELEC_EXPORT", h, td]) / (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] )) > (PathName & "/Parameters_Infos.txt");
+    #        printf "%f", 100*(sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]) - sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t ["ELEC_EXPORT", h, td]) / (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] )) > (PathName & "/Parameters_Infos.txt");
             printf "\n auto_sufficiancy_min [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*auto_sufficiancy_rate > ( PathName & "/Parameters_Infos.txt");
 			printf "\n auto_sufficiancy_real [%] = " > ( PathName & "/Parameters_Infos.txt");
@@ -423,10 +423,10 @@ param PathName symbolic default "output/";
 			printf "%s,%s,%.2f,%s,%s,%s\n", "Exterior Heat" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]} ((layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td]   +
 					layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td]
-					-((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-			     	  (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))))
-			+(max(Storage_in["TS_DEC_HP_ELEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC",h,td]/max(0.001,Storage_in["TS_DEC_HP_ELEC", "HEAT_LOW_T_DECEN", h, td]))+
-			+(max(Storage_in["TS_DEC_THHP_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS",h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS", "HEAT_LOW_T_DECEN", h, td] ))
+					-((max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+			     	  (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] ))))
+			+(max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC",h,td]/max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td]))+
+			+(max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS",h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))
 			+layers_in_out["DEC_THHP_GAS","NG"] * F_t ["DEC_THHP_GAS", h, td]), "Exterior Heat", "#8FBC8F",
 			"TWh" > ( PathName & "/input2sankey.csv");
 
@@ -477,30 +477,30 @@ param PathName symbolic default "output/";
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_SOLAR", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar" , "Heat LT Dec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 					(layers_in_out["DEC_SOLAR","HEAT_LOW_T_DECEN"] * (F_t ["DEC_SOLAR", h, td])# SUPPRESSED # - Solar_excess [ h, td] )
-					-((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] )))
+					-((max(Storage_in["TS_DEC" 			   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" 			   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))
 					)
 					, "Solar", "#FFFF00", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_SOLAR", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Solar" , "Dec. Sto", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-					((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
-					  (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] ))
+					((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+					  (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))
 					)
 					, "Solar", "#FFFF00", "TWh" > ( PathName & "/input2sankey.csv");
 
@@ -605,18 +605,18 @@ param PathName symbolic default "output/";
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_DIRECT_ELEC", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Heat LT Dec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["DEC_DIRECT_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_DIRECT_ELEC", h, td]
-					- ((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))))
+					- ((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))))
 			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_DIRECT_ELEC", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Heat LT Dec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]}(layers_in_out["DEC_DIRECT_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_DIRECT_ELEC", h, td]
-					- ((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))))
+					- ((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))))
 			, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
-			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]: Storage_in["TS_DEC_DIRECT_ELEC", "HEAT_LOW_T_DECEN", h, td] > Storage_out["TS_DEC_DIRECT_ELEC", "HEAT_LOW_T_DECEN", h, td] }
-			    	((Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td])*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
+			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]: Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] > Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td] }
+			    	((Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td])*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
 						printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "Dec. Sto",
 							sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-							((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] )))
+							((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))
 						, "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
 
 			# H2 use
@@ -648,23 +648,23 @@ param PathName symbolic default "output/";
 					(sum{i in COGEN, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 						(layers_in_out[i,"HEAT_LOW_T_DECEN"] * F_t [i, h, td]) -
 						 sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (
-							max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] )) +
-							max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] )) +
-							max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] )) +
-							max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] ))))
+							max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+							max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] )) +
+							max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+							max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))))
 						, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 
 			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-								    ((max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] )))> 0.001 then
+								    ((max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))> 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "CHP" , "Dec. Sto",
 					sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-						((max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] )) +
-						(max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] )) +
-						(max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] )) +
-						(max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] ))				
+						((max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+						(max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] )) +
+						(max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+						(max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))				
 						)
 						, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 
@@ -679,15 +679,15 @@ param PathName symbolic default "output/";
 				printf "%s,%s,%.2f,%s,%s,%s\n", "CHP" , "Losses", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 				((-layers_in_out["DHN_COGEN_GAS","NG"] * F_t ["DHN_COGEN_GAS", h, td]   - layers_in_out["DEC_COGEN_GAS","NG"] * F_t["DEC_COGEN_GAS", h, td]   - layers_in_out["DEC_ADVCOGEN_GAS","NG"] * F_t ["DEC_ADVCOGEN_GAS", h, td]
 				 - layers_in_out["DEC_COGEN_GAS","ELECTRICITY"] * F_t ["DEC_COGEN_GAS", h, td] - layers_in_out["DEC_ADVCOGEN_GAS","ELECTRICITY"] * F_t ["DEC_ADVCOGEN_GAS", h, td]
-			-((max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
- (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
- (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
- (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] ))))
+			-((max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+ (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+ (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+ (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))))
  -((layers_in_out["DEC_COGEN_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_COGEN_GAS", h, td]) + (layers_in_out["DEC_ADVCOGEN_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_ADVCOGEN_GAS", h, td]) 
- -(max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] )) +
-max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] )) +
-max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] )) +
-max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] ))))), "Electricity", "#708090", "TWh" > ( PathName & "/input2sankey.csv");		
+ -(max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] )) +
+max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] )) +
+max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))))), "Electricity", "#708090", "TWh" > ( PathName & "/input2sankey.csv");		
 
 			# HPs
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DEC_HP_ELEC", h, td] + F_t ["DEC_THHP_GAS", h,
@@ -696,22 +696,22 @@ max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar
 					sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 					((layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td]   +
 					layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td]
-					-((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-			     	  (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] )))
+					-((max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+			     	  (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] )))
 					)  )
 					, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DHN_HP_ELEC", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "DHN", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]}((layers_in_out["DHN_HP_ELEC","HEAT_LOW_T_DHN"] * F_t ["DHN_HP_ELEC", h, td]  )   - (
-			(Storage_in ["TS_DEC_HP_ELEC", "ELECTRICITY", h, td]) )), "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
+			(Storage_in ["TS_DEC", "ELECTRICITY", h, td]) )), "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 				# Storage
 			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			    		((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-			     	    (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
+			    		((max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+			     	    (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] ))) >10 then
 					printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "Dec. Sto",
 							sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-							((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-							 (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] )))
+							((max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+							 (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] )))
 							,"Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 
 			#Losses		
@@ -749,24 +749,24 @@ max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar
 				sum{i in BOILERS, t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
 					(layers_in_out[i,"HEAT_LOW_T_DECEN"] * F_t [i, h, td] )
 				-sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-					((max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-					(max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-					(max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))
+					((max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+					(max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+					(max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))
 					)  ,
 						"Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-								    ((max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))) > 0.001 then
+								    ((max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Boilers" , "Dec. Sto",
 								sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-								    ((max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-								     (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))
-								 )  ,
+								    ((max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+								     (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))
+								 	)  ,
 						"Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 
-
+						
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_BOILER_GAS", h, td] + F_t ["DHN_BOILER_WOOD",
 			h, td] + F_t ["DHN_BOILER_OIL", h, td])  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Boilers" , "DHN", sum{i in BOILERS, t in PERIODS, h in HOUR_OF_PERIOD[t], td in
@@ -804,30 +804,30 @@ max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0)*(1-F_t_Solar
 			#STORAGE DECENTRALISED :
 			# inputs :
 			#     -Direct elec : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			#						((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] )))
+			#						((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))
 			#     -HPs         : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			#						((max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] )))
+			#						((max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] )))
 			#     -Boilers     : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			#					    ((max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] )))
+			#					    ((max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] )))
 			#	  -CHP_dec     : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			#					    ((max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] )))
+			#					    ((max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(1-F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))
 			#     -DEC_SOLAR   : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-			#						((max(Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC_DIRECT_ELEC" , "HEAT_LOW_T_DECEN", h, td] ))+
-			#						 (max(Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC_HP_ELEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC_THHP_GAS"    , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_GAS"  , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_WOOD" , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC_BOILER_OIL"  , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_GAS"   , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_GAS", "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC_COGEN_OIL"   , "HEAT_LOW_T_DECEN", h, td] ))+
-			#					     (max(Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC_ADVCOGEN_H2" , "HEAT_LOW_T_DECEN", h, td] )))
+			#						((max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_DIRECT_ELEC"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+			#						 (max(Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_HP_ELEC"      ,h,td]  /max(0.001,Storage_in["TS_DEC"     , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_THHP_GAS"     ,h,td]  /max(0.001,Storage_in["TS_DEC"    , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_GAS"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_WOOD"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_BOILER_OIL"   ,h,td]  /max(0.001,Storage_in["TS_DEC"  , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_GAS"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC", "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_GAS" ,h,td]  /max(0.001,Storage_in["TS_DEC", "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_COGEN_OIL"    ,h,td]  /max(0.001,Storage_in["TS_DEC"   , "HEAT_LOW_T_DECEN", h, td] ))+
+			#					     (max(Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] - Storage_out["TS_DEC" , "HEAT_LOW_T_DECEN", h, td],0))*(  F_t_Solar["DEC_ADVCOGEN_H2"  ,h,td]  /max(0.001,Storage_in["TS_DEC" , "HEAT_LOW_T_DECEN", h, td] )))
 			# outputs :
 			# 	  -Storage_out     : sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t], i in TS_DEC}
 			#						(max{0,Storage_out[i , "HEAT_LOW_T_DECEN", h, td] - Storage_in[i , "HEAT_LOW_T_DECEN", h, td]})
