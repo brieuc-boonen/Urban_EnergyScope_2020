@@ -44,18 +44,18 @@ set HOME_TECHNOLOGIES {END_USES_TYPES};
 set STORAGE_TECH; #  set of storage technologies 
 set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
-
+set RENOVATION;
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
 set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
-set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE; 
+set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE union RENOVATION; 
 set TECHNOLOGIES_OF_END_USES_CATEGORY {i in END_USES_CATEGORIES} within TECHNOLOGIES := setof {j in END_USES_TYPES_OF_CATEGORY[i], k in TECHNOLOGIES_OF_END_USES_TYPE [j]} k;
 set RE_RESOURCES within RESOURCES; # List of RE resources (including wind hydro solar), used to compute the RE share
 set V2G within TECHNOLOGIES;   # EVs which can be used for vehicle-to-grid (V2G).
 set EVs_BATT   within STORAGE_TECH; # specific battery of EVs
 set EVs_BATT_OF_V2G {V2G}; # Makes the link between batteries of EVs and the V2G technology
 set STORAGE_DAILY within STORAGE_TECH;# Storages technologies for daily application 
-set TS_OF_DEC_TECH {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} ; # Makes the link between TS and the technology producing the heat
+#set TS_OF_DEC_TECH {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} ; # Makes the link between TS and the technology producing the heat
 
 ##Additional SETS added just to simplify equations.
 set TYPICAL_DAY_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAYS: (t,h,td) in T_H_TD} td; #TD_OF_PERIOD(T)
@@ -79,6 +79,7 @@ param c_p_t {TECHNOLOGIES, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity fact
 ## Parameters added to define scenarios and technologies [Table 2]
 param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
+# param end_uses_input_post {i in END_USES_INPUT} >= 0 ; 
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 param auto_consumption_rate_low >= 0, <=1;
@@ -152,6 +153,7 @@ var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for
 var TotalCost >= -100000; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
+# var C_renov {RENOVATION} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
 var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
 var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
@@ -173,9 +175,9 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		then
 			(end_uses_input[l] / total_time + end_uses_input["LIGHTING"] * electricity_time_series [h, td] / t_op [h, td] ) + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - (F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"])) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - (F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"])) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input["MOBILITY_PASSENGER"] * mob_pass_time_series [h, td] / t_op [h, td]  ) * Share_Mobility_Public
 		else (if l == "MOB_PRIVATE" then
@@ -206,6 +208,10 @@ subject to main_cost_calc {j in TECHNOLOGIES}:
 # [Eq. 5] Total cost of each resource
 subject to op_cost_calc {i in RESOURCES}:
 	C_op [i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (c_op [i] * F_t [i, h, td] * t_op [h, td] ) ;
+
+# [PoC] Total cost of renovations
+#subject to renov_cost_calc {k in RENOVATION}:
+#	C_renov [k] = c_inv [k] * F [k];	
 
 ## Emissions
 #-----------
@@ -333,9 +339,9 @@ subject to thermal_solar_total_capacity :
 	F ["DEC_SOLAR"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} F_Solar[j];
 
 # [Eq. 28]: Decentralised thermal technology must supply a constant share of heat demand.
-subject to decentralised_heating_balance  {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, i in TS_OF_DEC_TECH[j], h in HOURS, td in TYPICAL_DAYS}:
-	F_t [j, h, td] + F_t_Solar [j, h, td] + sum {l in LAYERS } ( Storage_out [i, l, h, td] - Storage_in [i, l, h, td])  
-		= Shares_LowT_Dec[j] * (end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td]);
+#subject to decentralised_heating_balance  {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"} diff STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DECEN"] , h in HOURS, td in TYPICAL_DAYS}:
+#	F_t [j, h, td] + F_t_Solar [j, h, td] + sum {l in LAYERS , i in STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DECEN"]} (Storage_out [i, l, h, td] - Storage_in [i, l, h, td])  
+#		= Shares_LowT_Dec[j] * (end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input_post["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td]);
 
 ## EV storage :
 
@@ -388,9 +394,18 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/	
 
 
-# [PoC] Import when Feed_in
+# [Urban] Import when Feed_in
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
+
+# [PoC] Building renovation efficiency upgrade
+# subject to building_renovations:
+# 	end_uses_input_post["HEAT_LOW_T_SH"] = end_uses_input["HEAT_LOW_T_SH"]*(F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"]) ; #sum {i in RENOVATION} (F [i])
+
+# [PoC] Definition of min/max output of each technology as % of total output in a given layer. 
+subject to renovation_f_max_perc {k in RENOVATION}:
+	F [k] <= fmax_perc [k] * end_uses_input ["HEAT_LOW_T_SH"];
+
 
 
 #Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
