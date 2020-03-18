@@ -195,7 +195,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i];# + Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -407,7 +407,7 @@ subject to renovation_f_max_perc {k in RENOVATION}:
 	F [k] <= fmax_perc [k] * end_uses_input ["HEAT_LOW_T_SH"];
 
 
-
+/*
 #Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
 subject to Minimum_auto_consumption_rate_low :
 	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
@@ -427,7 +427,7 @@ subject to Minimum_auto_sufficiancy_rate :
 	>=	auto_sufficiancy_rate*
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
 
-
+*/
  /*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
