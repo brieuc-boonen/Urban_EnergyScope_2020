@@ -79,7 +79,8 @@ param c_p_t {TECHNOLOGIES, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity fact
 ## Parameters added to define scenarios and technologies [Table 2]
 param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
-# param end_uses_input_post {i in END_USES_INPUT} >= 0 ; 
+param auto_consumption_rate >= 0;
+param auto_sufficiancy_rate >= -10;
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 
@@ -168,14 +169,14 @@ var Prosumer_tax >=0;
 #-----------------------------------------
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
-subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
+subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_DAYS}:
 	End_Uses [l, h, td] = (if l == "ELECTRICITY" 
 		then
 			(end_uses_input[l] / total_time + end_uses_input["LIGHTING"] * electricity_time_series [h, td] / t_op [h, td] ) + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - (F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"])) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - (F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"])) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input["MOBILITY_PASSENGER"] * mob_pass_time_series [h, td] / t_op [h, td]  ) * Share_Mobility_Public
 		else (if l == "MOB_PRIVATE" then
@@ -405,27 +406,15 @@ subject to renovation_f_max_perc {k in RENOVATION}:
 	F [k] <= fmax_perc [k] * end_uses_input ["HEAT_LOW_T_SH"];
 
 
-/*
-#Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
-subject to Minimum_auto_consumption_rate_low :
-	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
-	>=	auto_consumption_rate_low*
-	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
+subject to Minimum_auto_consumption_rate :
+sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
+	>=	auto_consumption_rate*
+sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
 
-#Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
-subject to Minimum_auto_consumption_rate_up :
-	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
-	<=	auto_consumption_rate_up*
-	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
-
-
-#Minimum Auto sufficiancy 
 subject to Minimum_auto_sufficiancy_rate :
-	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
+sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
 	>=	auto_sufficiancy_rate*
-	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
-
-*/
+sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
  /*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 

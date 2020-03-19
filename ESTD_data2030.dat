@@ -51,7 +51,7 @@ set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PRIVATE"] := 	CAR_GASOLINE	CAR_DIESEL	CAR
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_RAIL"] :=	 TRAIN_FREIGHT;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_ROAD"] := 	TRUCK;
 
-set HOME_TECHNOLOGIES["ELECTRICITY"] := PV DEC_COGEN_GAS DEC_COGEN_OIL DEC_ADVCOGEN_GAS DEC_ADVCOGEN_H2 ;
+set HOME_TECHNOLOGIES["ELECTRICITY"] := PV;
 
 set STORAGE_TECH :=	LNG_STO	 PHES BATT_LI 	BEV_BATT 	PHEV_BATT 	TS_DEC  TS_DHN_DAILY	  TS_DHN_SEASONAL;
 set INFRASTRUCTURE  :=	EFFICIENCY	DHN	GRID POWER2GAS_in	POWER2GAS_out	POWER2GAS 	H2_ELECTROLYSIS 	H2_NG	H2_BIOMASS	GASIFICATION_SNG	PYROLYSIS;
@@ -92,9 +92,8 @@ set BOILERS	:=	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL	DEC_BOILER_GAS	DEC_
 ## PARAMETERS presented in Table 2.
 param i_rate := 	0.015	; # part [2.7.4]
 param re_share_primary := 	0;
-# param auto_consumption_rate_low := 0; 
-# param auto_consumption_rate_up := 1; 
-# param auto_sufficiancy_rate := 0; 
+param auto_consumption_rate := 0;
+param auto_sufficiancy_rate := -10;
 param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
 # param autocons_target := 37.74; #%
 
