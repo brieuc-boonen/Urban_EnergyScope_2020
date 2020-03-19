@@ -82,9 +82,7 @@ param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_deman
 # param end_uses_input_post {i in END_USES_INPUT} >= 0 ; 
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
-param auto_consumption_rate_low >= 0, <=1;
-param auto_consumption_rate_up >= 0, <=1;
-param auto_sufficiancy_rate >= 0, <=100;
+
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -119,7 +117,7 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
-param autocons_target >= 0;
+
 
 
 ##Additional parameter (not presented in the paper)
@@ -195,7 +193,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i];# + Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -233,7 +231,7 @@ subject to gwp_op_calc {i in RESOURCES}:
 #-----------------------
 
 # [Eq. 9] min & max limit to the size of each technology
-subject to size_limit {j in TECHNOLOGIES}:
+subject to size_limit {j in TECHNOLOGIES diff RENOVATION}:
 	0 <= F [j] <= f_max [j];
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
@@ -407,7 +405,7 @@ subject to renovation_f_max_perc {k in RENOVATION}:
 	F [k] <= fmax_perc [k] * end_uses_input ["HEAT_LOW_T_SH"];
 
 
-
+/*
 #Minimum Auto consumption /!\ Include all technologies that produce electricity ! No exceptions !!	
 subject to Minimum_auto_consumption_rate_low :
 	sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
@@ -427,7 +425,7 @@ subject to Minimum_auto_sufficiancy_rate :
 	>=	auto_sufficiancy_rate*
 	sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
 
-
+*/
  /*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
