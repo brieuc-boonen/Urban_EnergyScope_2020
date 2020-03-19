@@ -92,11 +92,11 @@ set BOILERS	:=	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL	DEC_BOILER_GAS	DEC_
 ## PARAMETERS presented in Table 2.
 param i_rate := 	0.015	; # part [2.7.4]
 param re_share_primary := 	0;
-param auto_consumption_rate_low := 0; 
-param auto_consumption_rate_up := 1; 
-param auto_sufficiancy_rate := 0; 
+# param auto_consumption_rate_low := 0; 
+# param auto_consumption_rate_up := 1; 
+# param auto_sufficiancy_rate := 0; 
 param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
-param autocons_target := 37.74; #%
+# param autocons_target := 37.74; #%
 
 
 # Part [2.4]
@@ -201,7 +201,7 @@ WINDOW  0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 
 # Technologies data from Tables (10,19,21,22,23,25,27,28,29,30) and part [2.2.1.1] for hydro
 param:	                ref_size	c_inv	c_maint	gwp_constr	lifetime	c_p	    fmin_perc	fmax_perc	f_min	f_max :=
-PV	                    0.25	    870	    10.815	2081.43	    25	        1	    0	        1	        0.25	    10          # real_f_min : 0.25 (brussel pv website)
+PV	                    0.25	    870	    10.815	2081.43	    25	        1	        0	        1	        0.25	    10          # real_f_min : 0.25 (brussel pv website)
 WIND	                3000	    1040	2.89	622.85	    30	        1	    0	        1	        0.1	    0
 DHN_HP_ELEC	            1000	    344.76	11.995	174.79	    25	        0.95	0	        1	        0.1	    0
 DHN_COGEN_GAS	        20	        1254.49	37.531	490.88	    25	        0.85	0	        1	        0.1	    0

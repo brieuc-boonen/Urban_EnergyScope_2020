@@ -82,9 +82,7 @@ param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_deman
 # param end_uses_input_post {i in END_USES_INPUT} >= 0 ; 
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
-param auto_consumption_rate_low >= 0, <=1;
-param auto_consumption_rate_up >= 0, <=1;
-param auto_sufficiancy_rate >= 0, <=100;
+
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -119,7 +117,7 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
-param autocons_target >= 0;
+
 
 
 ##Additional parameter (not presented in the paper)
@@ -233,7 +231,7 @@ subject to gwp_op_calc {i in RESOURCES}:
 #-----------------------
 
 # [Eq. 9] min & max limit to the size of each technology
-subject to size_limit {j in TECHNOLOGIES}:
+subject to size_limit {j in TECHNOLOGIES diff RENOVATION}:
 	0 <= F [j] <= f_max [j];
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
