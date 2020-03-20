@@ -118,7 +118,8 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
-
+param mult_factor {TECHNOLOGIES} >=0 default 0; # Multiplicative factor that is applied to the tradable green certificates (TGC) to give more (>1) or less (<1) value to the traded GC for each tech.
+param c_gc >=0; # Mean price of one TGC in today's market
 
 
 ##Additional parameter (not presented in the paper)
@@ -160,6 +161,7 @@ var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of th
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
 var Prosumer_tax >=0;
+var R_gc {TECHNOLOGIES} >=0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -194,7 +196,7 @@ subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_D
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i];# + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -210,7 +212,11 @@ subject to op_cost_calc {i in RESOURCES}:
 
 # [PoC] Total cost of renovations
 #subject to renov_cost_calc {k in RENOVATION}:
-#	C_renov [k] = c_inv [k] * F [k];	
+#	C_renov [k] = c_inv [k] * F [k];
+
+# [PoC] Total revenue with Green Certificates
+subject to rgc_cost_calc {j in TECHNOLOGIES}:
+	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
 
 ## Emissions
 #-----------

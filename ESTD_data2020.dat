@@ -124,6 +124,12 @@ param share_freight_train_max := 	0.25	;
 param share_heat_dhn_min := 	0	; #0.02
 param share_heat_dhn_max := 	0	; #0.27
 
+param c_gc := 0.16 ; # 94 [€/CV] * 1.81 [CV/MWh] / 1000 [kWh/MWh] Source : Brugel.Brussels
+
+param mult_factor :=												
+PV 0.66 #0.528 #1.32*10/25
+;
+
 
 # f: efficiencies (data from Tables 19,21,22,23,25,29,30) 
 param layers_in_out: ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	WASTE	H2	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR :=
@@ -200,7 +206,7 @@ WINDOW  0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 
 # Technologies data from Tables (10,19,21,22,23,25,27,28,29,30) and part [2.2.1.1] for hydro
 param:	                ref_size	c_inv	c_maint	gwp_constr	lifetime	c_p	    fmin_perc	fmax_perc	f_min	f_max :=
-PV	                    0.25	    1130	13.44	2081.43	25	1	0	1	0	10          # real_f_min : 0.25 (brussel pv website)
+PV	                    0.25	    1130	13.44	2081.43	    25	        1	    0	        1	        0	    10          # real_f_min : 0.25 (brussel pv website)
 WIND	                3000	    1040	2.89	622.85	    30	        1	    0	        1	        0.1	    0
 DHN_HP_ELEC	            1000	    344.76	11.995	174.79	    25	        0.95	0	        1	        0.1	    0
 DHN_COGEN_GAS	        20	        1254.49	37.531	490.88	    25	        0.85	0	        1	        0.1	    0
@@ -276,7 +282,7 @@ WINDOW                  0.01	    0.33	0	    0	        1	        1	    0	        
 # RESOURCES: part [2.5] (Table 26)
 param:	avail	gwp_op	c_op	:=
 ELECTRICITY	1000000	0.4818	0.22 #0.084335191
-ELECTRICITY_FEED_IN 1000000	0   0 #0.137477 (data Notion Wallonie)
+ELECTRICITY_FEED_IN 1000000	0   0.1374 #0.137477 (data Notion Wallonie)
 GASOLINE	1000000	0.3448	0.082366044
 DIESEL	1000000	0.3148	0.079743788
 BIOETHANOL	0	0	0.082366044
