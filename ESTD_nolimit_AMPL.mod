@@ -264,7 +264,7 @@ subject to resource_availability {i in RESOURCES}:
 # output from technologies/resources/storage - input to technologies/storage = demand. Demand has default value of 0 for layers which are not end_uses
 subject to layer_balance {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		sum {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH } 
-		((layers_in_out[i, l] / cop_time_series [i, h, td]) * F_t [i, h, td]) 
+		((layers_in_out[i, l] * cop_time_series [i, h, td]) * F_t [i, h, td]) 
 		+ sum {j in STORAGE_TECH} ( Storage_out [j, l, h, td] - Storage_in [j, l, h, td] )
 		- End_Uses [l, h, td]
 		= 0;

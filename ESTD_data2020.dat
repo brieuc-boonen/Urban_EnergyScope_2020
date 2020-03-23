@@ -45,7 +45,7 @@ set END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"] :=	MOB_FREIGHT_RAIL	MOB_FREIG
 
 set TECHNOLOGIES_OF_END_USES_TYPE["ELECTRICITY"] := 	PV	WIND;
 set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"] := 	DHN_HP_ELEC	DHN_COGEN_GAS	DHN_COGEN_WOOD	DHN_COGEN_WASTE	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL;
-set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] := 	DEC_HP_ELEC	DEC_THHP_GAS	DEC_COGEN_GAS	DEC_COGEN_OIL	DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2	DEC_BOILER_GAS	DEC_BOILER_WOOD	DEC_BOILER_OIL	DEC_SOLAR	DEC_DIRECT_ELEC;
+set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] := 	DEC_HP_ELEC_A2A DEC_HP_ELEC_A2W DEC_HP_ELEC_G2W	DEC_THHP_GAS	DEC_COGEN_GAS	DEC_COGEN_OIL	DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2	DEC_BOILER_GAS	DEC_BOILER_WOOD	DEC_BOILER_OIL	DEC_SOLAR	DEC_DIRECT_ELEC;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"] := 	TRAMWAY_TROLLEY	BUS_COACH_DIESEL	BUS_COACH_HYDIESEL	BUS_COACH_CNG_STOICH	BUS_COACH_FC_HYBRIDH2	TRAIN_PUB;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PRIVATE"] := 	CAR_GASOLINE	CAR_DIESEL	CAR_NG	CAR_HEV	CAR_PHEV	CAR_BEV	CAR_FUEL_CELL;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_RAIL"] :=	 TRAIN_FREIGHT;
@@ -159,8 +159,14 @@ DHN_COGEN_WASTE	0.4444	0	0	0	0	0	0	0	-2.2222	0	1	0	0	0	0	0	0	0
 DHN_BOILER_GAS	0	0	0	0	0	-1.0785	0	0	0	0	1	0	0	0	0	0	0	0
 DHN_BOILER_WOOD	0	0	0	0	0	0	0	-1.1568	0	0	1	0	0	0	0	0	0	0
 DHN_BOILER_OIL	0	0	0	-1.1461	0	0	0	0	0	0	1	0	0	0	0	0	0	0
-DEC_HP_ELEC	-0.3333	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
-DEC_THHP_GAS	0	0	0	0	0	-0.6667	0	0	0	0	0	1	0	0	0	0	0	0
+#DEC_HP_ELEC	-0.3333	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_HP_ELEC_A2A	-0.2703	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_HP_ELEC_A2W	-0.2631	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_HP_ELEC_G2W	-0.2222 0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+#DEC_THHP_GAS	0	0	0	0	0	-0.6667	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_THHP_GAS_ABS_A2W	0	0	0	0	0	-0.6896	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_THHP_GAS_ABS_G2W	0	0	0	0	0	-0.6896	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_THHP_GAS_ADS_G2W	0	0	0	0	0	-0.7407	0	0	0	0	0	1	0	0	0	0	0	0
 DEC_COGEN_GAS	0.9565	0	0	0	0	-2.1739	0	0	0	0	0	1	0	0	0	0	0	0
 DEC_COGEN_OIL	0.907	0	0	-2.3256	0	0	0	0	0	0	0	1	0	0	0	0	0	0
 DEC_ADVCOGEN_GAS	1.25	0	0	0	0	-2.5000	0	0	0	0	0	1	0	0	0	0	0	0
@@ -215,9 +221,15 @@ DHN_COGEN_WASTE	        20	        2927.87	111.32	647.82	    25	        0.85	0	 
 DHN_BOILER_GAS	        10	        58.8913	1.1799	12.32	    17	        0.95	0	        1	        0.1	    0
 DHN_BOILER_WOOD	        10	        115.179 2.3036	28.87	    17	        0.9	    0	        1	        0.1	    0
 DHN_BOILER_OIL	        10	        54.8553	1.1799	12.32	    17	        0.95	0	        1	        0.1	    0
-DEC_HP_ELEC	            2.5         425     27.800	164.89	    12	        1	    0	        1	        2.5	    30          # real_f_min : 6.5 (air-eau) (telephone thema)
-#DEC_HP_ELEC_G2W	    4           1500    27.800	164.89	    12	        1	    0	        1	        4   	32          # real_f_min : 6.5 (air-eau) (telephone thema)
-DEC_THHP_GAS	        0.5         400	    7.8333	381.93	    20	        1	    0	        1	        30  	60          # same (not sure)
+#DEC_HP_ELEC	        2.5         425     27.800	164.89	    12	        1	    0	        1	        2.5	    30          # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_HP_ELEC_A2A	        2.5         425     40.500	164.89	    12	        1	    0	        1	        2.5	    30          # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_HP_ELEC_A2W	        2.5         940     27.800	164.89	    18	        1	    0	        1	        2.5	    30          # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_HP_ELEC_G2W	        2.5         1500    27.800	164.89	    20	        1	    0	        1	        4	    32          # real_f_min : 6.5 (air-eau) (telephone thema)
+#DEC_HP_ELEC_G2W	    4           1500    27.800	164.89	    20	        1	    0	        1	        4   	32          # real_f_min : 6.5 (air-eau) (telephone thema)
+#DEC_THHP_GAS	        0.5         400	    7.8333	381.93	    20	        1	    0	        1	        30  	60          # same (not sure)
+DEC_THHP_GAS_ABS_A2W	0.5         400	    23.500	381.93	    20	        1	    0	        1	        5   	60          # same (not sure)
+DEC_THHP_GAS_ABS_G2W	0.5         490	    23.500	381.93	    20	        1	    0	        1	        5  	60          # same (not sure)
+DEC_THHP_GAS_ADS_G2W    0.5         1300	23.500	381.93	    20	        1	    0	        1	        5   	60          # same (not sure)
 #DEC_THHP_GAS_ADS	    0.5         1300	23.500	381.93	    20	        1	    0	        1	        30  	0           # same (not sure)
 DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	        1       30          # real_f_min : 1 (H.I. Onovwiona)
 DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	        1       30          # same OM as above (reasonable)
