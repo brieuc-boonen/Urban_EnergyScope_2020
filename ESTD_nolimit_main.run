@@ -215,7 +215,7 @@ param PathName symbolic default "output/";
 			for {td in TYPICAL_DAYS, h in HOURS}{
 				printf "\n %d \t %d\t",td,h   > ( PathName & "/ElecLayers.txt");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
-					printf "%f\t",(layers_in_out[i, "ELECTRICITY"] * F_t [i, h, td]) > ( PathName & "/ElecLayers.txt");
+					printf "%f\t", (layers_in_out[i, "ELECTRICITY"] /** cop_time_series [i,"ELECTRICITY", h, td]*/ * F_t [i, h, td]) > ( PathName & "/ElecLayers.txt");
 				}
 				for {j in STORAGE_TECH}{
 					printf "%f\t",(-Storage_in [j, "ELECTRICITY", h, td]) > ( PathName & "/ElecLayers.txt");
@@ -239,7 +239,7 @@ param PathName symbolic default "output/";
 			for {td in TYPICAL_DAYS, h in HOURS}{
 				printf "\n %d \t %d\t",td,h   > ( PathName & "/LTLayers.txt");
 				for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH }{
-					printf "%f\t",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} (layers_in_out[i, l] * F_t [i, h, td])) > ( PathName & "/LTLayers.txt");
+					printf "%f\t",(sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]} ((layers_in_out[i, l]) * F_t [i, h, td])) > ( PathName & "/LTLayers.txt");
 				}
 				for {j in STORAGE_TECH }{
 					printf "%f\t",sum {l in END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"]}(-Storage_in [j, l, h, td]) > ( PathName & "/LTLayers.txt");
@@ -337,8 +337,8 @@ param PathName symbolic default "output/";
 			for {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH}{
 				printf "\n %s \t", gsub(i,"F","Capitalf") > ( PathName & "/YearBalance.txt");
 				for {l in LAYERS}{
-					printf " %f\t", sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-									layers_in_out[i, l] * F_t [i, h, td] > ( PathName & "/YearBalance.txt");
+					printf " %f\t", (sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
+									(layers_in_out[i, l]*F_t [i, h, td]/*cop_time_series [i, l, h, td]*/))  > ( PathName & "/YearBalance.txt");
 				}
 			}
 			for {j in STORAGE_TECH}{
@@ -372,6 +372,8 @@ param PathName symbolic default "output/";
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", re_share_primary > ( PathName & "/Parameters_Infos.txt");
+			printf "\n storage_in = " > ( PathName & "/Parameters_Infos.txt"); 
+            printf "%f", sum{i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "HEAT_LOW_T_DECEN", h, td]) > ( PathName & "/Parameters_Infos.txt");
 
 
 			################################################################################
@@ -417,10 +419,10 @@ param PathName symbolic default "output/";
 			> ( PathName & "/input2sankey.csv");
 
 			## Exterior Heat #8FBC8F
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_THHP_GAS", h, td]  ) > 0.001 then
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_THHP_GAS", h, td] + F_t ["DEC_HP_ELEC", h,td] ) > 0.001 then
 			printf "%s,%s,%.2f,%s,%s,%s\n", "Exterior Heat" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
-			TYPICAL_DAY_OF_PERIOD[t]} ((layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td]   +
-			layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td] +layers_in_out["DEC_THHP_GAS","NG"] * F_t ["DEC_THHP_GAS", h, td] + layers_in_out["DEC_HP_ELEC","ELECTRICITY"] * F_t ["DEC_HP_ELEC", h, td] ))
+			TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td]   +
+			layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td] +layers_in_out["DEC_THHP_GAS","NG"] * F_t ["DEC_THHP_GAS", h, td] + (layers_in_out["DEC_HP_ELEC","ELECTRICITY"]/**cop_time_series ["DEC_HP_ELEC","ELECTRICITY", h, td]*/* F_t ["DEC_HP_ELEC", h, td]))
 			, "Exterior Heat", "#8FBC8F", "TWh" > ( PathName & "/input2sankey.csv");
 
 
@@ -559,8 +561,7 @@ param PathName symbolic default "output/";
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC", h,
 			td]) ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
-			TYPICAL_DAY_OF_PERIOD[t]}(-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td]   -
-			layers_in_out["DEC_HP_ELEC","ELECTRICITY"] * F_t ["DEC_HP_ELEC", h, td]  )  , "Electricity", "#00BFFF", "TWh" >
+			TYPICAL_DAY_OF_PERIOD[t]} (-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC","ELECTRICITY"]* F_t ["DEC_HP_ELEC", h, td]/**(cop_time_series ["DEC_HP_ELEC","ELECTRICITY", h, td])*/)  , "Electricity", "#00BFFF", "TWh" >
 			( PathName & "/input2sankey.csv");
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["H2_ELECTROLYSIS", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "H2 prod", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
@@ -613,8 +614,8 @@ param PathName symbolic default "output/";
 			td])  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "Heat",
 					sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}
-					((layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td]   +
-					layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td]))
+					((layers_in_out["DEC_HP_ELEC","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC", h, td])   +
+					(layers_in_out["DEC_THHP_GAS","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS", h, td]))
 					, "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DHN_HP_ELEC", h, td]  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "DHN", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
@@ -680,8 +681,7 @@ param PathName symbolic default "output/";
 
 			# New boxes for Heat storage
 			if sum{i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "HEAT_LOW_T_DECEN", h, td]) > 0.001 then
-				printf "%s,%s,%.2f,%s,%s,%s\n", "Heat" , "Dec. Sto", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}       (sum {i
-			in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"] }(Storage_in [i, "HEAT_LOW_T_DECEN", h, td])) , "Heat LT", "#FA8072",	"TWh" > ( PathName & "/input2sankey.csv");
+				printf "%s,%s,%.2f,%s,%s,%s\n", "Heat" , "Dec. Sto", sum{ i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "HEAT_LOW_T_DECEN", h, td]) , "Heat LT", "#FA8072",	"TWh" > ( PathName & "/input2sankey.csv");
 			
 			if sum{i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(Storage_in [i, "HEAT_LOW_T_DECEN", h, td]) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Dec. Sto" , "Heat LT Dec", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(sum {i in STORAGE_OF_END_USES_TYPES["HEAT_LOW_T_DECEN"] }(Storage_out [i, "HEAT_LOW_T_DECEN", h, td] )  ) , "Heat LT", "#FA8072", "TWh" > ( PathName & "/input2sankey.csv");
