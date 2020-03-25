@@ -32,6 +32,10 @@ option log_file 'log.txt';   #write the log in a .txt file. Create the file befo
 
 option cplex_options $cplex_options 'mipgap 0.01 ';
 
+param PathName symbolic default "output/";
+
+print PathName;
+
 ################################################################################
 ################################################################################
 ##																			  ##
@@ -45,4 +49,10 @@ solve;
 ### Printing output
 for {i in DAYS}{
  printf "%d\t\n",(sum{j in DAYS} j*Cluster_matrix[j,i]) >> "TD_of_days.out";
+}
+
+print "--------------SAVING TDs -----------";
+
+for {i in DAYS}{
+ printf "%d\t\n",(sum{j in DAYS} j*Cluster_matrix[j,i]) > ( PathName & "/TD_of_days.txt");
 }
