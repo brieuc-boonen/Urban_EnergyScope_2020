@@ -103,7 +103,7 @@ param PathName symbolic default "output/";
 			printf "%s\t%s\t%s\n", "Name", "GWP_constr", "GWP_op" > ( PathName & "/gwp_breakdown.txt");
 			for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 			then
-					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), GWP_constr [i] / lifetime [i], 0 > ( PathName & "/gwp_breakdown.txt");
+					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), GWP_saved/*constr*/ [i] /*/ lifetime [i]*/, 0 > ( PathName & "/gwp_breakdown.txt");
 			else
 					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), 0, GWP_op [i] > ( PathName & "/gwp_breakdown.txt");
 			}
