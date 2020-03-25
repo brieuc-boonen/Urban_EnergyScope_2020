@@ -36,33 +36,30 @@ set END_USES_TYPES_OF_CATEGORY {END_USES_CATEGORIES}; # Types of demand (end-use
 set RESOURCES; # Resources: fuels (renewables and fossils) and electricity imports
 set BIOFUELS within RESOURCES; # imported biofuels.
 set EXPORT within RESOURCES; # exported resources
-set IMPORT_FEED_IN within RESOURCES; 
 set ELECTRANSFER within RESOURCES;
 set END_USES_TYPES := setof {i in END_USES_CATEGORIES, j in END_USES_TYPES_OF_CATEGORY [i]} j; # secondary set
 set TECHNOLOGIES_OF_END_USES_TYPE {END_USES_TYPES}; # set all energy conversion technologies (excluding storage technologies and infrastructure)
-set HOME_TECHNOLOGIES {END_USES_TYPES};
 set STORAGE_TECH; #  set of storage technologies 
 set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
-set RENOVATION;
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
-set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
-set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE union RENOVATION; 
+set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT) union END_USES_TYPES; # Layers are used to balance resources/products in the system
+set TECHNOLOGIES := (setof {i in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE [i]} j) union STORAGE_TECH union INFRASTRUCTURE; 
 set TECHNOLOGIES_OF_END_USES_CATEGORY {i in END_USES_CATEGORIES} within TECHNOLOGIES := setof {j in END_USES_TYPES_OF_CATEGORY[i], k in TECHNOLOGIES_OF_END_USES_TYPE [j]} k;
 set RE_RESOURCES within RESOURCES; # List of RE resources (including wind hydro solar), used to compute the RE share
 set V2G within TECHNOLOGIES;   # EVs which can be used for vehicle-to-grid (V2G).
 set EVs_BATT   within STORAGE_TECH; # specific battery of EVs
 set EVs_BATT_OF_V2G {V2G}; # Makes the link between batteries of EVs and the V2G technology
 set STORAGE_DAILY within STORAGE_TECH;# Storages technologies for daily application 
-#set TS_OF_DEC_TECH {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} ; # Makes the link between TS and the technology producing the heat
+set TS_OF_DEC_TECH {TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} ; # Makes the link between TS and the technology producing the heat
 
 ##Additional SETS added just to simplify equations.
 set TYPICAL_DAY_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAYS: (t,h,td) in T_H_TD} td; #TD_OF_PERIOD(T)
 set HOUR_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAYS: (t,h,td) in T_H_TD} h; #H_OF_PERIOD(T)
 
 ## Additional SETS: only needed for printing out results (not represented in Figure 3).
-set COGEN within TECHNOLOGIES; # cogeneration tech;
+set COGEN within TECHNOLOGIES; # cogeneration tech
 set BOILERS within TECHNOLOGIES; # boiler tech
 
 #################################
@@ -75,16 +72,13 @@ param heating_time_series {HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_sh [-]: factor f
 param mob_pass_time_series {HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_pass [-]: factor for sharing passenger transportation across Typical days (adding up to 1) based on https://www.fhwa.dot.gov/policy/2013cpr/chap1.cfm
 param mob_freight_time_series {HOURS, TYPICAL_DAYS} >= 0, <= 1; # %_fr [-]: factor for sharing freight transportation across Typical days (adding up to 1)
 param c_p_t {TECHNOLOGIES, HOURS, TYPICAL_DAYS} default 1; #Hourly capacity factor [-]. If = 1 (default value) <=> no impact.
-param cop_time_series {RESOURCES union TECHNOLOGIES diff STORAGE_TECH, LAYERS, HOURS, TYPICAL_DAYS} default 1;
 
 ## Parameters added to define scenarios and technologies [Table 2]
 param end_uses_demand_year {END_USES_INPUT, SECTORS} >= 0 default 0; # end_uses_year [GWh]: table end-uses demand vs sectors (input to the model). Yearly values. [Mpkm] or [Mtkm] for passenger or freight mobility.
 param end_uses_input {i in END_USES_INPUT} := sum {s in SECTORS} (end_uses_demand_year [i,s]); # end_uses_input (Figure 1.4) [GWh]: total demand for each type of end-uses across sectors (yearly energy) as input from the demand-side model. [Mpkm] or [Mtkm] for passenger or freight mobility.
-param auto_consumption_rate >= 0;
-param auto_sufficiancy_rate >= -10;
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
-
+param auto_consumption_rate >= 0;
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -119,11 +113,6 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
-param mult_factor {TECHNOLOGIES} >=0 default 0; # Multiplicative factor that is applied to the tradable green certificates (TGC) to give more (>1) or less (<1) value to the traded GC for each tech.
-param c_gc >=0; # Mean price of one TGC in today's market
-param living_area >0; # Living area in [m2]
-param c_inc_fix {TECHNOLOGIES} >=0 default 0; # Incentive revenue
-param c_inc_var {TECHNOLOGIES} >=0 default 0; # Incentive revenue
 
 
 ##Additional parameter (not presented in the paper)
@@ -156,7 +145,6 @@ var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for
 var TotalCost >= -100000; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
-# var C_renov {RENOVATION} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
 var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
 var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
@@ -164,8 +152,6 @@ var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of th
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
 var Prosumer_tax >=0;
-var R_gc {TECHNOLOGIES} >=0;
-var R_inc {TECHNOLOGIES} >=0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -175,14 +161,14 @@ var R_inc {TECHNOLOGIES} >=0;
 #-----------------------------------------
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
-subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_DAYS}:
+subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	End_Uses [l, h, td] = (if l == "ELECTRICITY" 
 		then
 			(end_uses_input[l] / total_time + end_uses_input["LIGHTING"] * electricity_time_series [h, td] / t_op [h, td] ) + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input["MOBILITY_PASSENGER"] * mob_pass_time_series [h, td] / t_op [h, td]  ) * Share_Mobility_Public
 		else (if l == "MOB_PRIVATE" then
@@ -200,7 +186,7 @@ subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_D
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j]) + sum {i in RESOURCES} C_op [i] ;#+ Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -213,20 +199,6 @@ subject to main_cost_calc {j in TECHNOLOGIES}:
 # [Eq. 5] Total cost of each resource
 subject to op_cost_calc {i in RESOURCES}:
 	C_op [i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (c_op [i] * F_t [i, h, td] * t_op [h, td] ) ;
-
-# [PoC] Total cost of renovations
-#subject to renov_cost_calc {k in RENOVATION}:
-#	C_renov [k] = c_inv [k] * F [k];
-
-# [PoC] Total revenue with Green Certificates
-subject to rgc_cost_calc {j in TECHNOLOGIES}:
-	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] ) / lifetime [j];
-
-
-# [PoC] Total revenue with other incentives
-/*subject to rinc_cost_calc {j in TECHNOLOGIES}:
-	R_inc [j] = c_inc_fix*binarynumber{TECH} + c_inc_var [j] * living_area ;#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
-*/
 
 ## Emissions
 #-----------
@@ -243,13 +215,24 @@ subject to gwp_constr_calc {j in TECHNOLOGIES}:
 subject to gwp_op_calc {i in RESOURCES}:
 	GWP_op [i] = gwp_op [i] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [i, h, td] * t_op [h, td] );	
 
-
+	
 ## Multiplication factor
 #-----------------------
 
 # [Eq. 9] min & max limit to the size of each technology
-subject to size_limit {j in TECHNOLOGIES diff RENOVATION}:
-	0 <= F [j] <= f_max [j];
+subject to size_limit_min {j in TECHNOLOGIES}:
+	F [j] >= f_min [j] * X_active [j];
+subject to size_limit_max {j in TECHNOLOGIES}:
+	F [j] <= f_max [j] * X_active [j];
+/*
+# [Eq. 9] min & max limit to the size of each technology
+subject to size_limit_max {j in TECHNOLOGIES}:
+	F [j] <= f_max [j];
+
+subject to size_limit_min {j in TECHNOLOGIES}:
+	F [j] != 0 ==>
+      F [j] >= f_min [j];
+*/
 	
 # [Eq. 10] relation between power and capacity via period capacity factor. This forces max hourly output (e.g. renewables)
 subject to capacity_factor_t {j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}:
@@ -273,11 +256,10 @@ subject to resource_availability {i in RESOURCES}:
 # output from technologies/resources/storage - input to technologies/storage = demand. Demand has default value of 0 for layers which are not end_uses
 subject to layer_balance {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		sum {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH } 
-		(layers_in_out[i, l] * cop_time_series[i,l,h,td] * F_t [i, h, td])	
+		(layers_in_out[i, l] * F_t [i, h, td]) 
 		+ sum {j in STORAGE_TECH} ( Storage_out [j, l, h, td] - Storage_in [j, l, h, td] )
 		- End_Uses [l, h, td]
 		= 0;
-		
 	
 ## Storage	
 #---------
@@ -311,7 +293,7 @@ subject to storage_layer_out {j in STORAGE_TECH, l in LAYERS, h in HOURS, td in 
 # [Eq. 19] limit the Energy to power ratio. 
 subject to limit_energy_to_power_ratio {j in STORAGE_TECH , l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	Storage_in [j, l, h, td] * storage_charge_time[j] + Storage_out [j, l, h, td] * storage_discharge_time[j] <=  F [j] * storage_availability[j];
-
+	
 
 ## Infrastructure
 #----------------
@@ -355,9 +337,9 @@ subject to thermal_solar_total_capacity :
 	F ["DEC_SOLAR"] = sum {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}} F_Solar[j];
 
 # [Eq. 28]: Decentralised thermal technology must supply a constant share of heat demand.
-#subject to decentralised_heating_balance  {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"} diff STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DECEN"] , h in HOURS, td in TYPICAL_DAYS}:
-#	F_t [j, h, td] + F_t_Solar [j, h, td] + sum {l in LAYERS , i in STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DECEN"]} (Storage_out [i, l, h, td] - Storage_in [i, l, h, td])  
-#		= Shares_LowT_Dec[j] * (end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input_post["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td]);
+subject to decentralised_heating_balance  {j in TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] diff {"DEC_SOLAR"}, i in TS_OF_DEC_TECH[j], h in HOURS, td in TYPICAL_DAYS}:
+	F_t [j, h, td] + F_t_Solar [j, h, td] + sum {l in LAYERS } ( Storage_out [i, l, h, td] - Storage_in [i, l, h, td])  
+		= Shares_LowT_Dec[j] * (end_uses_input["HEAT_LOW_T_HW"] / total_time + end_uses_input["HEAT_LOW_T_SH"] * heating_time_series [h, td] / t_op [h, td]);
 
 ## EV storage :
 
@@ -409,36 +391,22 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 /*subject to extra_efficiency:
 	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/	
 
-
-# [Urban] Import when Feed_in
+/*
+# [PoC] Export when Net-Metering
+subject to net_metering:
+	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY", h, td] * t_op [h, td] );	
+*/
+# [PoC] Import when Feed_in
 subject to feed_in_tariff:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] ) <= sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t ["ELEC_EXPORT", h, td] * t_op [h, td] );
 
-# [PoC] Building renovation efficiency upgrade
-# subject to building_renovations:
-# 	end_uses_input_post["HEAT_LOW_T_SH"] = end_uses_input["HEAT_LOW_T_SH"]*(F ["ROOF"] + F ["FACADE"] + F ["FLOOR"] + F ["WINDOW"]) ; #sum {i in RENOVATION} (F [i])
-
-# [PoC] Definition of min/max output of each technology as % of total output in a given layer. 
-subject to renovation_f_max_perc {k in RENOVATION}:
-	F [k] <= fmax_perc [k] * end_uses_input ["HEAT_LOW_T_SH"];
-
-
-subject to Minimum_auto_consumption_rate :
-sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] - F_t ["ELEC_EXPORT", h, td])
-	>=	auto_consumption_rate*
-sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]);
-
-subject to Minimum_auto_sufficiancy_rate :
-sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
-	>=	auto_sufficiancy_rate*
-sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
- /*
+/*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
-autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		
-F["PV"]*0.085*910 -m*(1-Pros_tax) <= Prosumer_tax <= F["PV"]*0.085*910 + m*(1-Pros_tax); 					# always true							Prosumer_tax applied 
-m*(-Pros_tax) <= Prosumer_tax <= m*(Pros_tax);																# No prosumer tax ( = 0 )				always true
-*/ 
+	Prosumer_tax = (F ["PV"] * 0.085 * 910); #with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
+*/
+
+# 
 
 ##########################
 ### OBJECTIVE FUNCTION ###
