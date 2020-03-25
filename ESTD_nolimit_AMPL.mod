@@ -119,7 +119,7 @@ param storage_availability {STORAGE_TECH} >=0, default 1;# %_sto_avail [-]: Stor
 param loss_network {END_USES_TYPES} >= 0 default 0; # %_net_loss: Losses coefficient [0; 1] in the networks (grid and DHN)
 param Batt_per_Car {V2G} >= 0; # ev_Batt_size [GWh]: Battery size per EVs car technology
 param c_grid_extra >=0; # Cost to reinforce the grid due to IRE penetration [MCHF].
-param mult_factor {TECHNOLOGIES} >=0 default 0; # Multiplicative factor that is applied to the tradable green certificates (TGC) to give more (>1) or less (<1) value to the traded GC for each tech.
+param taux_octroi {TECHNOLOGIES} >=0 default 0; # Multiplicative factor that is applied to the tradable green certificates (TGC) to give more (>1) or less (<1) value to the traded GC for each tech.
 param c_gc >=0; # Mean price of one TGC in today's market
 param living_area >0; # Living area in [m2]
 param c_inc_fix {TECHNOLOGIES} >=0 default 0; # Incentive revenue
@@ -220,7 +220,7 @@ subject to op_cost_calc {i in RESOURCES}:
 
 # [PoC] Total revenue with Green Certificates
 subject to rgc_cost_calc {j in TECHNOLOGIES}:
-	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] ) / lifetime [j];
+	R_gc [j] = c_gc * taux_octroi[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] ) / lifetime [j];
 
 
 # [PoC] Total revenue with other incentives

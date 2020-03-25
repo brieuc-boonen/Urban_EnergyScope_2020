@@ -45,6 +45,7 @@ set STORAGE_TECH; #  set of storage technologies
 set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
 set RENOVATION;
+set CHP;
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
 set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
@@ -166,6 +167,7 @@ var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored
 var Prosumer_tax >=0;
 var R_gc {TECHNOLOGIES} >=0;
 var R_inc {TECHNOLOGIES} >=0;
+var GWP_saved {TECHNOLOGIES} >=0 default 0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -220,7 +222,7 @@ subject to op_cost_calc {i in RESOURCES}:
 
 # [PoC] Total revenue with Green Certificates
 subject to rgc_cost_calc {j in TECHNOLOGIES}:
-	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] )  / lifetime [j];
+	R_gc [j] = c_gc * mult_factor[j] * GWP_saved [j] / 1000 * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] )  / lifetime [j];
 
 # [PoC] Total revenue with other incentives
 subject to rinc_cost_calc {j in TECHNOLOGIES}:
@@ -241,6 +243,14 @@ subject to gwp_constr_calc {j in TECHNOLOGIES}:
 subject to gwp_op_calc {i in RESOURCES}:
 	GWP_op [i] = gwp_op [i] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [i, h, td] * t_op [h, td] );	
 
+# [PoC] Factor emission saved
+subject to fact_emission_saved {j in CHP}:
+	GWP_saved [j] = 0.59 ;#( (gwp_op ["NG"]/0.55) +  (gwp_op ["NG"]*layers_in_out[j, "HEAT_LOW_T_DECEN"]/layers_in_out[j, "ELECTRICITY"]/0.90) - (gwp_op ["NG"]/*could change*//((layers_in_out[j, "HEAT_LOW_T_DECEN"]+layers_in_out[j, "ELECTRICITY"])/layers_in_out[j, "NG"]) ) /217 );
+
+subject to fact_emission_saved_pv :
+	GWP_saved ["PV"] = 1.81 ;
+
+#1.81 [CV/MWh] / 1000 [kWh/MWh]
 
 ## Multiplication factor
 #-----------------------
