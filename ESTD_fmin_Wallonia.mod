@@ -45,6 +45,7 @@ set STORAGE_TECH; #  set of storage technologies
 set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all storage technologies related to an end-use types (used for thermal solar (TS))
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
 set RENOVATION;
+set HP;
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
 set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
@@ -124,6 +125,7 @@ param c_gc >=0; # Mean price of one TGC in today's market
 param living_area >0; # Living area in [m2]
 param c_inc_fix {TECHNOLOGIES} >=0 default 0; # Incentive revenue
 param c_inc_var {TECHNOLOGIES} >=0 default 0; # Incentive revenue
+var X_activehp binary;
 
 
 ##Additional parameter (not presented in the paper)
@@ -175,14 +177,14 @@ var R_inc {TECHNOLOGIES} >=0;
 #-----------------------------------------
 
 # [Figure 4] From annual energy demand to hourly power demand. End_Uses is non-zero only for demand layers.
-subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_DAYS}:
+subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 	End_Uses [l, h, td] = (if l == "ELECTRICITY" 
 		then
 			(end_uses_input[l] / total_time + end_uses_input["LIGHTING"] * electricity_time_series [h, td] / t_op [h, td] ) + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - sum {k in RENOVATION} (F [k]) ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - F [k] ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - sum {k in RENOVATION} (F [k]) ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input["MOBILITY_PASSENGER"] * mob_pass_time_series [h, td] / t_op [h, td]  ) * Share_Mobility_Public
 		else (if l == "MOB_PRIVATE" then
@@ -200,10 +202,10 @@ subject to end_uses_t {l in LAYERS, k in RENOVATION, h in HOURS, td in TYPICAL_D
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] /*- R_gc [j] - R_inc [j]*/) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] /*+ Prosumer_tax*/; 
 
 # [Eq. 3] Investment cost of each technology
-subject to investment_cost_calc {j in TECHNOLOGIES}: 
+subject to investment_cost_calc {j in TECHNOLOGIES union RENOVATION}: 
 	C_inv [j] = c_inv [j] * F [j];
 		
 # [Eq. 4] O&M cost of each technology
@@ -223,8 +225,16 @@ subject to rgc_cost_calc {j in TECHNOLOGIES}:
 	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] )  / lifetime [j];
 
 # [PoC] Total revenue with other incentives
-subject to rinc_cost_calc {j in TECHNOLOGIES}:
-	R_inc [j] = (c_inc_fix [j] + c_inc_var [j] * F[j]) * X_active [j] / lifetime [j];#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+subject to rinc_cost_calc {j in TECHNOLOGIES /*diff HP*/}:
+	R_inc [j] = (c_inc_fix [j] * X_active [j] + c_inc_var [j] * F[j])  / lifetime [j];#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+
+/*
+subject to heatpumpsel {h in HP}:
+	X_activehp = X_active ["DEC_HP_ELEC_A2A"] or X_active ["DEC_HP_ELEC_A2W"] or X_active ["DEC_HP_ELEC_G2W"] or X_active ["DEC_THHP_GAS_ABS_A2W"] or X_active ["DEC_THHP_GAS_ABS_G2W"] or X_active ["DEC_THHP_GAS_ADS_G2W"]; 
+
+subject to heatpumpsel2 {h in HP}:
+	R_inc ["DEC_HP_ELEC_A2A"] = (/*c_inc_fix ["DEC_HP_ELEC_A2A"] 3000 * X_activehp )  / ((sum {h in HP} (lifetime [h] * X_active [h]))/(sum {h in HP} (X_active [h]))); 
+*/
 
 ## Emissions
 #-----------
@@ -432,7 +442,15 @@ subject to minimum_auto_sufficiancy_rate :
 sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])
 	>=	auto_sufficiancy_rate*
 sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td]);
- /*
+
+
+
+# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
+subject to prosumer_policy: 
+	Prosumer_tax = (F ["PV"] * 0.085 * 910); # with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
+
+
+/*
 # [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
 subject to prosumer_policy: 
 autocons_target - m*(Pros_tax) <= auto_consumption_rate <= autocons_target + m*(1-Pros_tax); 				# if autocons > 37.74 => Pros_tax = 0	if <37.74 => Pros_tax = 1 to be respected		

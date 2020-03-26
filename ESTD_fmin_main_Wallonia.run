@@ -22,8 +22,8 @@ data ESTD_12TD.dat; # TDs depending data
 ################################################################################
 ################################################################################
 
-option solver cplex; # for Windows users
-#option solver './cplex'; # for Mac users
+#option solver cplex; # for Windows users
+option solver './cplex'; # for Mac users
 
 option show_stats 1; # show statistics
 
@@ -46,6 +46,17 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 param PathName symbolic default "output/";
 
+for {gasp in {0.6 .. 1.4 by +0.2}}{
+	let c_op ["NG"] := 0.0519*gasp; # GL : Assigner la nouvelle valeur du paramètre
+	let c_op ["LNG"] := 0.0519*gasp;
+	let c_op ["LFO"] := 0.064*gasp;
+	let c_op ["GASOLINE"] := 0.082366044*gasp;
+
+for {elecp in {1.4 .. 1.6 by +0.2}}{{
+
+	let c_op ["ELECTRICITY"] := 0.2861*elecp; # GL : Assigner la nouvelle valeur du paramètre
+
+		let PathName := "analysis/ressourcevar" & round(elecp,2) & "et" & round(gasp,2);
 		print PathName;
 
 		# Saving and starting from last solution. Starting from last solution is not very efficient.
@@ -103,7 +114,7 @@ param PathName symbolic default "output/";
 			printf "%s\t%s\t%s\n", "Name", "GWP_constr", "GWP_op" > ( PathName & "/gwp_breakdown.txt");
 			for {i in TECHNOLOGIES union RESOURCES}{if i in TECHNOLOGIES
 			then
-					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), GWP_constr [i] / lifetime [i], 0 > ( PathName & "/gwp_breakdown.txt");
+					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), (X_activehp+1)/*GWP_constr [i] / lifetime [i]*/, 0 > ( PathName & "/gwp_breakdown.txt");
 			else
 					printf "%s\t%.6f\t%.6f\n", gsub(i,"F","Capitalf"), 0, GWP_op [i] > ( PathName & "/gwp_breakdown.txt");
 			}
@@ -758,4 +769,4 @@ param PathName symbolic default "output/";
 
 
 		}# END SAVING
-}}#End cartography loop
+}}}#End cartography loop
