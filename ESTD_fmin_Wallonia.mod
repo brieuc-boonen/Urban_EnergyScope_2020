@@ -86,6 +86,7 @@ param auto_sufficiancy_rate >= -10;
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 
+param TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
 param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
@@ -160,7 +161,7 @@ var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each tech
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 # var C_renov {RENOVATION} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
-var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
+/*var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system*/
 var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
 var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
@@ -182,9 +183,9 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		then
 			(end_uses_input[l] / total_time + end_uses_input["LIGHTING"] * electricity_time_series [h, td] / t_op [h, td] ) + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DHN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - sum {k in RENOVATION} (F [k]) ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] /*-  sum{k in RENOVATION} (F [k])*/ ) * heating_time_series [h, td] / t_op [h, td] ) * Share_Heat_Dhn + Network_losses [l,h,td]
 		else (if l == "HEAT_LOW_T_DECEN" then
-			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] - sum {k in RENOVATION} (F [k]) ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
+			(end_uses_input["HEAT_LOW_T_HW"] / total_time + (end_uses_input ["HEAT_LOW_T_SH"] /*- sum{k in RENOVATION} (F [k] )*/ ) * heating_time_series [h, td] / t_op [h, td] ) * (1 - Share_Heat_Dhn)
 		else (if l == "MOB_PUBLIC" then
 			(end_uses_input["MOBILITY_PASSENGER"] * mob_pass_time_series [h, td] / t_op [h, td]  ) * Share_Mobility_Public
 		else (if l == "MOB_PRIVATE" then
@@ -202,7 +203,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] /*+ Prosumer_tax*/; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES union RENOVATION}: 
@@ -212,6 +213,10 @@ subject to investment_cost_calc {j in TECHNOLOGIES union RENOVATION}:
 subject to main_cost_calc {j in TECHNOLOGIES}: 
 	C_maint [j] = c_maint [j] * F [j];		
 
+# [PoC] AutoConsumption_Rate if auto_consumption_rate >= 0.3774;  TO BE DEFINED WITH THE INSTALLED CAPACITY
+/*subject to prosumer_policy: 
+	Prosumer_tax = (F ["PV"] * 0.085 * 910); # with net-metering ( à ajouter dans totalcosts) #en considérant que la capa installée est en kwe ou = kwc ??
+*/
 # [Eq. 5] Total cost of each resource
 subject to op_cost_calc {i in RESOURCES}:
 	C_op [i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (c_op [i] * F_t [i, h, td] * t_op [h, td] ) ;
@@ -225,16 +230,8 @@ subject to rgc_cost_calc {j in TECHNOLOGIES}:
 	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] )  / lifetime [j];
 
 # [PoC] Total revenue with other incentives
-subject to rinc_cost_calc {j in TECHNOLOGIES /*diff HP*/}:
-	R_inc [j] = (c_inc_fix [j] * X_active [j] + c_inc_var [j] * F[j])  / lifetime [j];#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
-
-/*
-subject to heatpumpsel {h in HP}:
-	X_activehp = X_active ["DEC_HP_ELEC_A2A"] or X_active ["DEC_HP_ELEC_A2W"] or X_active ["DEC_HP_ELEC_G2W"] or X_active ["DEC_THHP_GAS_ABS_A2W"] or X_active ["DEC_THHP_GAS_ABS_G2W"] or X_active ["DEC_THHP_GAS_ADS_G2W"]; 
-
-subject to heatpumpsel2 {h in HP}:
-	R_inc ["DEC_HP_ELEC_A2A"] = (/*c_inc_fix ["DEC_HP_ELEC_A2A"] 3000 * X_activehp )  / ((sum {h in HP} (lifetime [h] * X_active [h]))/(sum {h in HP} (X_active [h]))); 
-*/
+subject to rinc_cost_calc {j in TECHNOLOGIES}:
+	R_inc [j] = (c_inc_fix [j] * X_active [j] + c_inc_var [j] * F[j]) / lifetime [j];#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
 
 ## Emissions
 #-----------
@@ -398,8 +395,8 @@ subject to peak_lowT_dhn:
 #-----------------------------------------------------------------------------------------------------------------------
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
-subject to Minimum_GWP_reduction :
-	TotalGWP <= gwp_limit;
+/*subject to Minimum_GWP_reduction :
+	TotalGWP <= gwp_limit;/*
 
 # [Eq. 37] Minimum share of RE in primary energy supply
 subject to Minimum_RE_share :

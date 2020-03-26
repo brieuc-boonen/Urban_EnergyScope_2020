@@ -45,7 +45,7 @@ set END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"] :=	MOB_FREIGHT_RAIL	MOB_FREIG
 
 set TECHNOLOGIES_OF_END_USES_TYPE["ELECTRICITY"] := 	PV	WIND;
 set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"] := 	DHN_HP_ELEC	DHN_COGEN_GAS	DHN_COGEN_WOOD	DHN_COGEN_WASTE	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL;
-set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] := 	DEC_HP_ELEC_A2A DEC_HP_ELEC_A2W DEC_HP_ELEC_G2W DEC_THHP_GAS_ABS_A2W    DEC_THHP_GAS_ABS_G2W   DEC_THHP_GAS_ADS_G2W	DEC_COGEN_GAS	DEC_COGEN_OIL	DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2	DEC_BOILER_GAS	DEC_BOILER_WOOD	DEC_BOILER_OIL	DEC_SOLAR	DEC_DIRECT_ELEC;
+set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] := 	DEC_HP_ELEC_A2A DEC_HP_ELEC_A2W DEC_HP_ELEC_G2W	DEC_THHP_GAS_ABS_A2W DEC_THHP_GAS_ABS_G2W DEC_THHP_GAS_ADS_G2W	DEC_COGEN_GAS	DEC_COGEN_OIL	DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2	DEC_BOILER_GAS	DEC_BOILER_WOOD	DEC_BOILER_OIL	DEC_SOLAR	DEC_DIRECT_ELEC;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"] := 	TRAMWAY_TROLLEY	BUS_COACH_DIESEL	BUS_COACH_HYDIESEL	BUS_COACH_CNG_STOICH	BUS_COACH_FC_HYBRIDH2	TRAIN_PUB;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PRIVATE"] := 	CAR_GASOLINE	CAR_DIESEL	CAR_NG	CAR_HEV	CAR_PHEV	CAR_BEV	CAR_FUEL_CELL;
 set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_RAIL"] :=	 TRAIN_FREIGHT;
@@ -95,7 +95,7 @@ param i_rate := 	0.015	; # part [2.7.4]
 param re_share_primary := 	0;
 param auto_consumption_rate := 0;
 param auto_sufficiancy_rate := -10;
-param gwp_limit := 	47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
+param TotalGWP := 	8000;#47510	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
 # param autocons_target := 37.74; #%
 
 
@@ -139,20 +139,18 @@ PV 0 #0.66 #0.528 #1.32*10/25
 
 ## Primes
 param:    c_inc_fix    c_inc_var :=
-DEC_HP_ELEC_A2A	        3000	0
-DEC_HP_ELEC_A2W	        3000	0
-DEC_HP_ELEC_G2W	        3000	0
-DEC_THHP_GAS_ABS_A2W	3000	0
-DEC_THHP_GAS_ABS_G2W	3000	0
-DEC_THHP_GAS_ADS_G2W	3000	0
-DEC_BOILER_GAS	0    0
-DEC_BOILER_WOOD	3000    0
-DEC_BOILER_OIL	0    0
-DEC_SOLAR       2250    0
-/*ROOF            0       0.45
-FACADE          0       0.45   # 65 + 20 (GENERAL)
-FLOOR           0       0.45   
-WINDOW          0       0.45*/   # 15 * 1/15      
+DEC_HP_ELEC_A2A	        0 0#3000	0
+DEC_HP_ELEC_A2W	        0 0#3000	0
+DEC_HP_ELEC_G2W	        0 0#3000	0
+DEC_THHP_GAS_ABS_A2W	0 0#3000	0
+DEC_THHP_GAS_ABS_G2W	0 0#3000	0
+DEC_THHP_GAS_ADS_G2W	0 0#3000	0
+DEC_BOILER_WOOD	0 0#3000    0
+DEC_SOLAR       0 0#2250    0
+ROOF            0 0      #0 0.45
+FACADE          0 0      #0 0.45   # 65 + 20 (GENERAL)
+FLOOR           0 0      #0 0.45   
+WINDOW          0 0      #0 0.45   # 15 * 1/15      
 ;
 
 # f: efficiencies (data from Tables 19,21,22,23,25,29,30) 
@@ -236,7 +234,7 @@ WINDOW  0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0
 
 # Technologies data from Tables (10,19,21,22,23,25,27,28,29,30) and part [2.2.1.1] for hydro
 param:	                ref_size	c_inv	c_maint	gwp_constr	lifetime	c_p	    fmin_perc	fmax_perc	f_min	f_max :=
-PV	                    0.25	    1130	13.44	2081.43	    25	        1	    0	        1	        0	    6          # real_f_min : 0.25 (brussel pv website)
+PV	                    0.25	    1130	13.44	2081.43	    25	        1	    0	        1	        0	    6#10          # real_f_min : 0.25 (brussel pv website)
 WIND	                3000	    1040	2.89	622.85	    30	        1	    0	        1	        0.1	    0
 DHN_HP_ELEC	            1000	    344.76	11.995	174.79	    25	        0.95	0	        1	        0.1	    0
 DHN_COGEN_GAS	        20	        1254.49	37.531	490.88	    25	        0.85	0	        1	        0.1	    0
@@ -251,9 +249,9 @@ DEC_HP_ELEC_A2W	        2.5         940     27.800	164.89	    18	        1	    0
 DEC_HP_ELEC_G2W	        2.5         1500    27.800	164.89	    20	        1	    0	        1	        4	    32          # real_f_min : 6.5 (air-eau) (telephone thema)
 #DEC_HP_ELEC_G2W	    4           1500    27.800	164.89	    20	        1	    0	        1	        4   	32          # real_f_min : 6.5 (air-eau) (telephone thema)
 #DEC_THHP_GAS	        0.5         400	    7.8333	381.93	    20	        1	    0	        1	        30  	60          # same (not sure)
-DEC_THHP_GAS_ABS_A2W	0.5         400	    23.500	381.93	    20	        1	    0	        1	        5   	60          # same (not sure)
-DEC_THHP_GAS_ABS_G2W	0.5         490	    23.500	381.93	    20	        1	    0	        1	        5  	60          # same (not sure)
-DEC_THHP_GAS_ADS_G2W    0.5         1300	23.500	381.93	    20	        1	    0	        1	        5   	60          # same (not sure)
+DEC_THHP_GAS_ABS_A2W    0.5         400     23.5    381.93      20          1       0           1           5       60
+DEC_THHP_GAS_ABS_G2W    0.5         490     23.5    381.93      20          1       0           1           5       60
+DEC_THHP_GAS_ADS_G2W    0.5         1300    23.5    381.93      20          1       0           1           5       60
 #DEC_THHP_GAS_ADS	    0.5         1300	23.500	381.93	    20	        1	    0	        1	        30  	0           # same (not sure)
 DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	        5       30          # real_f_min : 1 (H.I. Onovwiona)
 DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	        5       30          # same OM as above (reasonable)
@@ -296,7 +294,7 @@ BATT_LI	                0.01	    1042	0.1	    61.3	    22	        1	    0	      
 BEV_BATT	            0.005	    0	    0	    0	        1	        1	    0	        1	        0.1	    0
 PHEV_BATT	            0.01	    0	    0	    0	        1	        1	    0	        1	        0.1	    0
 PHES	                0.01	    58.8	0	    8.33	    50	        1	    0	        1	        0.1	    0
-TS_DEC	                0.01	    20.2600	0.13280	0	        25	        1	    0	        1	        0.1	    100000
+TS_DEC	                0.01	    20.2600	0.13280	0	        25	        1	    0	        1	        0.1	    50
 # TS_DEC_HP_ELEC 	    0.01	    18.9720	0.13280	0	        25	        1	    0	        1	        0.1	    100000
 # TS_DEC_THHP_GAS 	    0.01	    18.9720	0.13280	0	        25	        1	    0	        1	        0.1	    100000
 # TS_DEC_COGEN_GAS 	    0.01	    18.9720	0.13280	0	        25	        1	    0	        1	        0.1	    100000
@@ -317,15 +315,15 @@ WINDOW                  0.01	    0.33	0	    0	        1	        1	    0	        
 
 # RESOURCES: part [2.5] (Table 26)
 param:	avail	gwp_op	c_op	:=
-ELECTRICITY	1000000	0.4818	0.2861 #0.22 #0.084335191
-ELECTRICITY_FEED_IN 1000000	0   0.137477 #0.137477 (data Notion Wallonie)
+ELECTRICITY	1000000	0.4818	0.2861 #0.084335191
+ELECTRICITY_FEED_IN 1000000	0   0.137477# (data Notion Wallonie)
 GASOLINE	1000000	0.3448	0.082366044
 DIESEL	1000000	0.3148	0.079743788
 BIOETHANOL	0	0	0.082366044
 BIODIESEL	0	0	0.079743788
-LFO	1000000	0.3115	0.064 #0.056740267
-LNG	0	0.2666	0.0519 #0.045 #0.041454118 # no price in BEL data so set same as NG
-NG	1000000	0	0.0519 #0.045 #0.041454118
+LFO	1000000	0.3115	0.064
+LNG	0	0.2666	0.0519 #0.041454118 # no price in BEL data so set same as NG
+NG	1000000	0.251	0.0519 
 NG_CCS	1000000	0.0118	0.045 #0.041454118
 SNG	0	0.0118	0.041454118
 WOOD	12279	0.4014	0.0514 #0.045#0.02664
