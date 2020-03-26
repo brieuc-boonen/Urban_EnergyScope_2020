@@ -13,7 +13,6 @@ model ESTD_fmin_Wallonia.mod;
 data ESTD_data2020_Wallonia.dat    # not TDs depending data
 data ESTD_12TD.dat; # TDs depending data
 
-
 ################################################################################
 ################################################################################
 ##																			  ##
@@ -45,6 +44,10 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 
 param PathName symbolic default "output/";
+for {gwp in {-7000 .. 0 by 100}}{{
+		let TotalGWP := gwp; # GL : Assigner la nouvelle valeur du paramètre
+
+		let PathName := "analysis/gwp/Run" & gwp;
 
 		print PathName;
 
@@ -353,20 +356,25 @@ param PathName symbolic default "output/";
 			}
 
 
-/*			#------------------------------------------
+			#------------------------------------------
             # PARAMETERS INFOs
             #------------------------------------------
-            /*
-			print "--------- SAVING Parameters Infos --------";
-            printf "\n Autocons [%] = " > ( PathName & "/Parameters_Infos.txt");
-            printf "%f", 100*(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_Uses ["ELECTRICITY", h, td])/((sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td])+(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out["ELECTRICITY", "ELECTRICITY"] * F_t ["ELECTRICITY_FEED_IN", h, td])) > ( PathName & "/Parameters_Infos.txt");
-            printf "\n Autosuff [%] = " > ( PathName & "/Parameters_Infos.txt");
-            printf "%f", 100*(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} layers_in_out["PV","ELECTRICITY"] * F_t ["PV", h, td])/(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} End_Uses ["ELECTRICITY", h, td]) > ( PathName & "/Parameters_Infos.txt");
-            printf "\n Network_losses [%] = " > ( PathName & "/Parameters_Infos.txt"); 
+			
+		    print "--------- SAVING Parameters Infos --------";
+            /*printf "\n auto_consumption_rate_input [%] = " > ( PathName & "/Parameters_Infos.txt");
+            printf "%f", 100*auto_consumption_rate > ( PathName & "/Parameters_Infos.txt");
+			printf "\n auto_consumption_rate_real [%] = " > ( PathName & "/Parameters_Infos.txt");
+            printf "%f", 100*(sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]) - sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t ["ELEC_EXPORT", h, td]) / (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] )) > (PathName & "/Parameters_Infos.txt");
+            printf "\n auto_sufficiancy_input [%] = " > ( PathName & "/Parameters_Infos.txt");
+            printf "%f", 100*auto_sufficiancy_rate > ( PathName & "/Parameters_Infos.txt");
+			printf "\n auto_sufficiancy_real [%] = " > ( PathName & "/Parameters_Infos.txt");
+            printf "%f", 100*(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])) / (sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td])) > ( PathName & "/Parameters_Infos.txt");
+            */
+			printf "\n Network_losses [%] = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", re_share_primary > ( PathName & "/Parameters_Infos.txt");
-*/
+
 
 			################################################################################
 			################################################################################
