@@ -86,7 +86,7 @@ param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 
 param TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
-param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
+/*param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.*/
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
 param share_freight_train_min >= 0, <= 1; # %_rail,min [-]: min limit for penetration of train in freight transportation
@@ -201,7 +201,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] + Prosumer_tax; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] /*+ Prosumer_tax*/; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES}: 
@@ -394,7 +394,7 @@ subject to peak_lowT_dhn:
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
 /*subject to Minimum_GWP_reduction :
-	TotalGWP <= gwp_limit;/*
+	TotalGWP <= gwp_limit;*/
 
 # [Eq. 37] Minimum share of RE in primary energy supply
 subject to Minimum_RE_share :
