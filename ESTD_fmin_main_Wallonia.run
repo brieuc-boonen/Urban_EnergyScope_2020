@@ -44,11 +44,11 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 
 param PathName symbolic default "output/";
-/*for {gwp in {4400 .. 0 by -00}}{{
+for {gwp in {7000 .. 0 by -250}}{{
 		let TotalGWP := gwp; # GL : Assigner la nouvelle valeur du paramètre
 
 		let PathName := "analysis/gwpRenov/Run" & gwp;*/
-
+/*
 for {gasp in {0.8 .. 1.6 by +0.2}}{
 	let c_op ["NG"] := 0.0519*gasp; # GL : Assigner la nouvelle valeur du paramètre
 	let c_op ["LNG"] := 0.0519*gasp;
@@ -59,7 +59,7 @@ for {elecp in {0.8 .. 1.6 by +0.2}}{{
 
 	let c_op ["ELECTRICITY"] := 0.2861*elecp; # GL : Assigner la nouvelle valeur du paramètre
 
-		let PathName := "analysis/ressourcevar/Fit/Run" & round(elecp,2) & "et" & round(gasp,2);
+		let PathName := "analysis/ressourcevar/Fit/Run" & round(elecp,2) & "et" & round(gasp,2);*/
 		print PathName;
 
 		# Saving and starting from last solution. Starting from last solution is not very efficient.
@@ -372,15 +372,19 @@ for {elecp in {0.8 .. 1.6 by +0.2}}{{
             #------------------------------------------
 			
 		    print "--------- SAVING Parameters Infos --------";
-            /*printf "\n auto_consumption_rate_input [%] = " > ( PathName & "/Parameters_Infos.txt");
+            printf "\n auto_consumption_rate_input [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*auto_consumption_rate > ( PathName & "/Parameters_Infos.txt");
 			printf "\n auto_consumption_rate_real [%] = " > ( PathName & "/Parameters_Infos.txt");
-            printf "%f", 100*(sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]) - sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t ["ELEC_EXPORT", h, td]) / (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] )) > (PathName & "/Parameters_Infos.txt");
-            printf "\n auto_sufficiancy_input [%] = " > ( PathName & "/Parameters_Infos.txt");
+            {if (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t [j, h, td]) > 0.001 
+			then 
+			printf "%f",100*(sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td]) - sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} F_t ["ELEC_EXPORT", h, td]) / (sum{j in HOME_TECHNOLOGIES["ELECTRICITY"], t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (layers_in_out[j,"ELECTRICITY"] * F_t [j, h, td] )) > (PathName & "/Parameters_Infos.txt");
+            else
+		    printf "%f", 0 > (PathName & "/Parameters_Infos.txt");
+			}
+			printf "\n auto_sufficiancy_input [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*auto_sufficiancy_rate > ( PathName & "/Parameters_Infos.txt");
 			printf "\n auto_sufficiancy_real [%] = " > ( PathName & "/Parameters_Infos.txt");
             printf "%f", 100*(sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td] - F_t ["ELECTRICITY_FEED_IN", h, td] * t_op [h, td] - F_t ["ELECTRICITY", h, td] * t_op [h, td])) / (sum {t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (End_Uses ["ELECTRICITY", h, td])) > ( PathName & "/Parameters_Infos.txt");
-            */
 			printf "\n Network_losses [%] = " > ( PathName & "/Parameters_Infos.txt"); 
             printf "%f", 100*loss_network ["ELECTRICITY"] > ( PathName & "/Parameters_Infos.txt"); 
             printf "\n re_share_primary = " > ( PathName & "/Parameters_Infos.txt"); 
@@ -590,8 +594,8 @@ for {elecp in {0.8 .. 1.6 by +0.2}}{{
 
 			## HEAT PROD======================================================================================
 
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2A", h,
-			td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td]) + F_t ["DEC_HP_ELEC_A2W_small", h, td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td]) ) > 0.001 then
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2A", h,
+			td] + F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td] + F_t ["DEC_HP_ELEC_A2W_small", h, td] + F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td] ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (
 					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_A2A","ELECTRICITY"]* F_t ["DEC_HP_ELEC_A2A", h, td]*(cop_time_series ["DEC_HP_ELEC_A2A","ELECTRICITY", h, td])
 					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_A2W","ELECTRICITY"]* F_t ["DEC_HP_ELEC_A2W", h, td]*(cop_time_series ["DEC_HP_ELEC_A2W","ELECTRICITY", h, td])
