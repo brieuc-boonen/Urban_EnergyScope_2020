@@ -1,0 +1,13 @@
+source,target,realValue,layerID,layerColor,layerUnit
+Exterior Heat,HPs,4174.62,Exterior Heat,#8FBC8F,TWh
+NG,HPs,9113.11,NG,#FFD700,TWh
+Electricity,Elec,1509.80,Electricity,#00BFFF,TWh
+Solar,Elec,2787.62,Solar,#FFFF00,TWh
+Solar,Heat,2456.79,Solar,#FFFF00,TWh
+Wood,Boilers,2234.18,Wood,#CD853F,TWh
+Elec,Export,1509.80,Electricity,#00BFFF,TWh
+Elec,Elec demand,2650.00,Electricity,#00BFFF,TWh
+Elec,HPs,137.62,Electricity,#00BFFF,TWh
+HPs,Heat,13425.34,Heat LT,#FA8072,TWh
+Boilers,Heat,1899.01,Heat LT,#FA8072,TWh
+Heat,Heat LT Dec,17781.14,Heat,#FA8072,TWh

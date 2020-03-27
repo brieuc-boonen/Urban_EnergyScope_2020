@@ -44,22 +44,22 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 
 param PathName symbolic default "output/";
-for {gwp in {-7000 .. 0 by 100}}{{
+/*for {gwp in {4400 .. 0 by -00}}{{
 		let TotalGWP := gwp; # GL : Assigner la nouvelle valeur du paramètre
 
-		let PathName := "analysis/gwp/Run" & gwp;
+		let PathName := "analysis/gwpRenov/Run" & gwp;*/
 
-for {gasp in {0.6 .. 1.4 by +0.2}}{
+for {gasp in {0.8 .. 1.6 by +0.2}}{
 	let c_op ["NG"] := 0.0519*gasp; # GL : Assigner la nouvelle valeur du paramètre
 	let c_op ["LNG"] := 0.0519*gasp;
 	let c_op ["LFO"] := 0.064*gasp;
 	let c_op ["GASOLINE"] := 0.082366044*gasp;
 
-for {elecp in {1.4 .. 1.6 by +0.2}}{{
+for {elecp in {0.8 .. 1.6 by +0.2}}{{
 
 	let c_op ["ELECTRICITY"] := 0.2861*elecp; # GL : Assigner la nouvelle valeur du paramètre
 
-		let PathName := "analysis/ressourcevar" & round(elecp,2) & "et" & round(gasp,2);
+		let PathName := "analysis/ressourcevar/Fit/Run" & round(elecp,2) & "et" & round(gasp,2);
 		print PathName;
 
 		# Saving and starting from last solution. Starting from last solution is not very efficient.
@@ -430,12 +430,14 @@ for {elecp in {1.4 .. 1.6 by +0.2}}{{
 			> ( PathName & "/input2sankey.csv");
 
 			## Exterior Heat #8FBC8F
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_THHP_GAS_ABS_A2W", h, td] + F_t ["DEC_THHP_GAS_ABS_G2W", h, td] + F_t ["DEC_THHP_GAS_ADS_G2W", h, td] + F_t ["DEC_HP_ELEC_A2A", h,td] + F_t ["DEC_HP_ELEC_A2W", h,td] + F_t ["DEC_HP_ELEC_G2W", h,td] ) > 0.001 then
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(F_t ["DEC_THHP_GAS_ABS_A2W", h, td] + F_t ["DEC_THHP_GAS_ABS_G2W", h, td] + F_t ["DEC_THHP_GAS_ADS_G2W", h, td] + F_t ["DEC_HP_ELEC_A2A", h,td] + F_t ["DEC_HP_ELEC_A2W", h,td] + F_t ["DEC_HP_ELEC_A2W_small", h,td] + F_t ["DEC_HP_ELEC_G2W", h,td] + F_t ["DEC_HP_ELEC_G2W_small", h,td] ) > 0.001 then
 			printf "%s,%s,%.2f,%s,%s,%s\n", "Exterior Heat" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in
 			TYPICAL_DAY_OF_PERIOD[t]} (
 				  layers_in_out["DEC_HP_ELEC_A2A","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2A", h, td] + (layers_in_out["DEC_HP_ELEC_A2A","ELECTRICITY"] * cop_time_series ["DEC_HP_ELEC_A2A","ELECTRICITY", h, td] * F_t ["DEC_HP_ELEC_A2A", h, td])  
 				+ layers_in_out["DEC_HP_ELEC_A2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2W", h, td] + (layers_in_out["DEC_HP_ELEC_A2W","ELECTRICITY"] * cop_time_series ["DEC_HP_ELEC_A2W","ELECTRICITY", h, td] * F_t ["DEC_HP_ELEC_A2W", h, td])  
+				+ layers_in_out["DEC_HP_ELEC_A2W_small","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2W_small", h, td] + (layers_in_out["DEC_HP_ELEC_A2W_small","ELECTRICITY"] * cop_time_series ["DEC_HP_ELEC_A2W_small","ELECTRICITY", h, td] * F_t ["DEC_HP_ELEC_A2W_small", h, td])  
 				+ layers_in_out["DEC_HP_ELEC_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_G2W", h, td] + (layers_in_out["DEC_HP_ELEC_G2W","ELECTRICITY"] * cop_time_series ["DEC_HP_ELEC_G2W","ELECTRICITY", h, td] * F_t ["DEC_HP_ELEC_G2W", h, td])  
+				+ layers_in_out["DEC_HP_ELEC_G2W_small","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_G2W_small", h, td] + (layers_in_out["DEC_HP_ELEC_G2W_small","ELECTRICITY"] * cop_time_series ["DEC_HP_ELEC_G2W_small","ELECTRICITY", h, td] * F_t ["DEC_HP_ELEC_G2W_small", h, td])  
 				+ layers_in_out["DEC_THHP_GAS_ABS_A2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ABS_A2W", h, td] + layers_in_out["DEC_THHP_GAS_ABS_A2W","NG"] * cop_time_series ["DEC_THHP_GAS_ABS_A2W","NG", h, td] * F_t ["DEC_THHP_GAS_ABS_A2W", h, td] 
 				+ layers_in_out["DEC_THHP_GAS_ADS_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ADS_G2W", h, td] + layers_in_out["DEC_THHP_GAS_ADS_G2W","NG"] * cop_time_series ["DEC_THHP_GAS_ADS_G2W","NG", h, td] * F_t ["DEC_THHP_GAS_ADS_G2W", h, td] 
 				+ layers_in_out["DEC_THHP_GAS_ABS_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ABS_G2W", h, td] + layers_in_out["DEC_THHP_GAS_ABS_G2W","NG"] * cop_time_series ["DEC_THHP_GAS_ABS_G2W","NG", h, td] * F_t ["DEC_THHP_GAS_ABS_G2W", h, td] 
@@ -589,11 +591,13 @@ for {elecp in {1.4 .. 1.6 by +0.2}}{{
 			## HEAT PROD======================================================================================
 
 			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2A", h,
-			td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td]) ) > 0.001 then
+			td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td]) + F_t ["DEC_HP_ELEC_A2W_small", h, td]) + (F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td]) ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "Elec" , "HPs", sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]} (
 					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_A2A","ELECTRICITY"]* F_t ["DEC_HP_ELEC_A2A", h, td]*(cop_time_series ["DEC_HP_ELEC_A2A","ELECTRICITY", h, td])
 					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_A2W","ELECTRICITY"]* F_t ["DEC_HP_ELEC_A2W", h, td]*(cop_time_series ["DEC_HP_ELEC_A2W","ELECTRICITY", h, td])
 					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_G2W","ELECTRICITY"]* F_t ["DEC_HP_ELEC_G2W", h, td]*(cop_time_series ["DEC_HP_ELEC_G2W","ELECTRICITY", h, td])
+					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_G2W_small","ELECTRICITY"]* F_t ["DEC_HP_ELEC_G2W_small", h, td]*(cop_time_series ["DEC_HP_ELEC_G2W_small","ELECTRICITY", h, td])
+					-layers_in_out["DHN_HP_ELEC","ELECTRICITY"] * F_t ["DHN_HP_ELEC", h, td] - layers_in_out["DEC_HP_ELEC_A2W_small","ELECTRICITY"]* F_t ["DEC_HP_ELEC_A2W_small", h, td]*(cop_time_series ["DEC_HP_ELEC_A2W_small","ELECTRICITY", h, td])
 					)  , "Electricity", "#00BFFF", "TWh" > ( PathName & "/input2sankey.csv");
 			/*if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}((F_t ["DHN_HP_ELEC", h, td] + F_t ["DEC_HP_ELEC_A2W", h,
 			td]) ) > 0.001 then
@@ -652,13 +656,15 @@ for {elecp in {1.4 .. 1.6 by +0.2}}{{
 			( PathName & "/input2sankey.csv");
 
 			# HPs
-			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}( (F_t ["DEC_HP_ELEC_A2A", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td] 
+			if sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}( (F_t ["DEC_HP_ELEC_A2A", h, td] + F_t ["DEC_HP_ELEC_A2W", h, td] + F_t ["DEC_HP_ELEC_A2W_small", h, td] + F_t ["DEC_HP_ELEC_G2W", h, td] + F_t ["DEC_HP_ELEC_G2W_small", h, td] 
 			+ F_t ["DEC_THHP_GAS_ABS_A2W", h,td] + F_t ["DEC_THHP_GAS_ABS_G2W", h,td] + F_t ["DEC_THHP_GAS_ADS_G2W", h,td])  ) > 0.001 then
 				printf "%s,%s,%.2f,%s,%s,%s\n", "HPs" , "Heat",
 					sum{t in PERIODS, h in HOUR_OF_PERIOD[t], td in TYPICAL_DAY_OF_PERIOD[t]}(
 						(layers_in_out["DEC_HP_ELEC_A2A","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2A", h, td])
-						+ (layers_in_out["DEC_HP_ELEC_A2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2W", h, td])  
+						+ (layers_in_out["DEC_HP_ELEC_A2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2W", h, td])
+						+ (layers_in_out["DEC_HP_ELEC_A2W_small","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_A2W_small", h, td])    
 						+ (layers_in_out["DEC_HP_ELEC_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_G2W", h, td])   
+						+ (layers_in_out["DEC_HP_ELEC_G2W_small","HEAT_LOW_T_DECEN"] * F_t ["DEC_HP_ELEC_G2W_small", h, td])   
 						+ (layers_in_out["DEC_THHP_GAS_ABS_A2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ABS_A2W", h, td])
 						+ (layers_in_out["DEC_THHP_GAS_ABS_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ABS_G2W", h, td])
 						+ (layers_in_out["DEC_THHP_GAS_ADS_G2W","HEAT_LOW_T_DECEN"] * F_t ["DEC_THHP_GAS_ADS_G2W", h, td])
