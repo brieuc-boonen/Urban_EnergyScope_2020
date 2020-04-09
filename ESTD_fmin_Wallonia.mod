@@ -65,6 +65,7 @@ set HOUR_OF_PERIOD {t in PERIODS} := setof {h in HOURS, td in TYPICAL_DAYS: (t,h
 ## Additional SETS: only needed for printing out results (not represented in Figure 3).
 set COGEN within TECHNOLOGIES; # cogeneration tech;
 set BOILERS within TECHNOLOGIES; # boiler tech
+set HPS within TECHNOLOGIES;
 
 #################################
 ### PARAMETERS [Tables 1-2]   ###
@@ -86,8 +87,8 @@ param auto_sufficiancy_rate >= -10;
 param i_rate > 0; # discount rate [-]: real discount rate
 param re_share_primary >= 0; # re_share [-]: minimum share of primary energy coming from RE*/
 
-param TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
-/*param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.*/
+/*param TotalGWP >= 0;*/ # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
+param gwp_limit >= 0;    # [ktCO2-eq./year] maximum gwp emissions allowed.
 param share_mobility_public_min >= 0, <= 1; # %_public,min [-]: min limit for penetration of public mobility over total mobility 
 param share_mobility_public_max >= 0, <= 1; # %_public,max [-]: max limit for penetration of public mobility over total mobility 
 param share_freight_train_min >= 0, <= 1; # %_rail,min [-]: min limit for penetration of train in freight transportation
@@ -111,7 +112,7 @@ param lifetime {TECHNOLOGIES} >= 0; # n: lifetime [years]
 param tau {i in TECHNOLOGIES} := i_rate * (1 + i_rate)^lifetime [i] / (((1 + i_rate)^lifetime [i]) - 1); # Annualisation factor ([-]) for each different technology [Eq. 2]
 param gwp_constr {TECHNOLOGIES} >= 0; # GWP emissions associated to the construction of technologies [ktCO2-eq./GW]. Refers to [GW] of main output
 param gwp_op {RESOURCES} >= 0; # GWP emissions associated to the use of resources [ktCO2-eq./GWh]. Includes extraction/production/transportation and combustion
-param c_p {TECHNOLOGIES} >= 0, <= 1 default 1; # yearly capacity factor of each technology [-], defined on annual basis. Different than 1 if sum {t in PERIODS} F_t (t) <= c_p * F
+param c_p {TECHNOLOGIES} >= 0/*, <= 1 default 1*/; # yearly capacity factor of each technology [-], defined on annual basis. Different than 1 if sum {t in PERIODS} F_t (t) <= c_p * F
 param storage_eff_in {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_in [-]: efficiency of input to storage from layers.  If 0 storage_tech/layer are incompatible
 param storage_eff_out {STORAGE_TECH , LAYERS} >= 0, <= 1; # eta_sto_out [-]: efficiency of output from storage to layers. If 0 storage_tech/layer are incompatible
 param storage_losses {STORAGE_TECH} >= 0, <= 1; # %_sto_loss [-]: Self losses in storage (required for Li-ion batteries). Value = self discharge in 1 hour.
@@ -161,14 +162,15 @@ var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each tech
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 # var C_renov {RENOVATION} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
 var C_op {RESOURCES} >= -100000; #C_op [MCHF/year]: Total O&M cost of each resource
-/*var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system*/
+var TotalGWP >= 0; # GWP_tot [ktCO2-eq./year]: Total global warming potential (GWP) emissions in the system
 var GWP_constr {TECHNOLOGIES} >= 0; # GWP_constr [ktCO2-eq.]: Total emissions of the technologies
 var GWP_op {RESOURCES} >= 0; #  GWP_op [ktCO2-eq.]: Total yearly emissions of the resources [ktCO2-eq./y]
 var Network_losses {END_USES_TYPES, HOURS, TYPICAL_DAYS} >= 0; # Net_loss [GW]: Losses in the networks (normally electricity grid and DHN)
 var Storage_level {STORAGE_TECH, PERIODS} >= 0; # Sto_level [GWh]: Energy stored at each period
 var Prosumer_tax >=0;
 var R_gc {TECHNOLOGIES} >=0;
-var R_inc {TECHNOLOGIES} >=0;
+var R_inc {TECHNOLOGIES} >=0 default 0;
+var R_ren {TECHNOLOGIES} >=0 default 0;
 
 #########################################
 ###      CONSTRAINTS Eqs [1-42]       ###
@@ -203,7 +205,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 
 # [Eq. 1]
 subject to totalcost_cal:
-TotalCost = sum {j in TECHNOLOGIES} (tau [j]  * C_inv [j] + C_maint [j] - R_gc [j] - R_inc [j]) + sum {i in RESOURCES} C_op [i] /*+ Prosumer_tax*/; 
+TotalCost = sum {j in TECHNOLOGIES} (tau [j] * ( C_inv [j] - R_gc [j] - R_inc [j] ) + C_maint [j] ) + sum {k in RENOVATION} (- tau [k] * R_ren [k]) + sum {i in RESOURCES} C_op [i] /*+ Prosumer_tax*/; 
 
 # [Eq. 3] Investment cost of each technology
 subject to investment_cost_calc {j in TECHNOLOGIES union RENOVATION}: 
@@ -222,16 +224,30 @@ subject to op_cost_calc {i in RESOURCES}:
 	C_op [i] = sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (c_op [i] * F_t [i, h, td] * t_op [h, td] ) ;
 
 # [PoC] Total cost of renovations
-#subject to renov_cost_calc {k in RENOVATION}:
-#	C_renov [k] = c_inv [k] * F [k];
+# subject to renov_cost_calc {k in RENOVATION}:
+# 	C_renov [k] = c_inv [k] * F [k];
 
 # [PoC] Total revenue with Green Certificates
 subject to rgc_cost_calc {j in TECHNOLOGIES}:
-	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] )  / lifetime [j];
+	R_gc [j] = c_gc * mult_factor[j] * sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
 
 # [PoC] Total revenue with other incentives
+subject to rinc_cost_cond {j in TECHNOLOGIES}:
+	(0.7 * C_inv [j]) >= R_inc [j] ;  /*+ c_inc_var [j] * F[j]*/ #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+
 subject to rinc_cost_calc {j in TECHNOLOGIES}:
-	R_inc [j] = (c_inc_fix [j] * X_active [j] + c_inc_var [j] * F[j]) / lifetime [j];#sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+	R_inc [j] <= (c_inc_fix [j] * X_active [j]  /*+ c_inc_var [j] * F[j]*/); #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+
+
+subject to rren_cost_cond {j in RENOVATION}:
+	(0.7 * C_inv [j]) >= R_ren [j] ; 
+subject to rren_cost_calc {j in RENOVATION}:
+	R_ren [j] <= (c_inc_var [j] * F[j]);
+	
+	/*R_ren [j] = (if (0.7 * c_inc_var [j]) > c_inv [j] then
+		0.70 * c_inv [j] * F[j] 
+		else ( c_inc_var [j] * F[j] ));/* * fmax_perc [j] * end_uses_input ["HEAT_LOW_T_SH"] * X_active [j]*/  /*+ c_inc_var [j] * F[j]*/  #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );*/
+
 
 ## Emissions
 #-----------
@@ -265,7 +281,6 @@ subject to capacity_factor_t {j in TECHNOLOGIES, h in HOURS, td in TYPICAL_DAYS}
 # [Eq. 11] relation between mult_t and mult via yearly capacity factor. This one forces total annual output
 subject to capacity_factor {j in TECHNOLOGIES}:
 	sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (F_t [j, h, td] * t_op [h, td]) <= F [j] * c_p [j] * total_time;	
-		
 ## Resources
 #-----------
 
@@ -280,7 +295,7 @@ subject to resource_availability {i in RESOURCES}:
 # output from technologies/resources/storage - input to technologies/storage = demand. Demand has default value of 0 for layers which are not end_uses
 subject to layer_balance {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		sum {i in RESOURCES union TECHNOLOGIES diff STORAGE_TECH } 
-		(layers_in_out[i, l] * cop_time_series[i,l,h,td] * F_t [i, h, td])	
+		(layers_in_out[i, l] / cop_time_series[i,l,h,td] * F_t [i, h, td])	
 		+ sum {j in STORAGE_TECH} ( Storage_out [j, l, h, td] - Storage_in [j, l, h, td] )
 		- End_Uses [l, h, td]
 		= 0;
@@ -395,8 +410,8 @@ subject to peak_lowT_dhn:
 #-----------------------------------------------------------------------------------------------------------------------
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
-/*subject to Minimum_GWP_reduction :
-	TotalGWP <= gwp_limit;*/
+subject to Minimum_GWP_reduction :
+	TotalGWP <= gwp_limit;
 
 # [Eq. 37] Minimum share of RE in primary energy supply
 subject to Minimum_RE_share :
