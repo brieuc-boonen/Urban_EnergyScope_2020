@@ -398,14 +398,14 @@ subject to peak_lowT_dhn:
 	
 # Limited roof surface
 subject to roof_lim:
-	F['PV'] + F['DEC_SOLAR'] <= roof_limit;
+	F['PV'] + F['DEC_SOLAR']/3 <= roof_limit; #https://www.solarthermalworld.org/news/solar-thermal-shows-highest-energy-yield-square-metre
 
 ## Adaptation for the case study: Constraints needed for the application to Switzerland (not needed in standard LP formulation)
 #-----------------------------------------------------------------------------------------------------------------------
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
-subject to Minimum_GWP_reduction :
-	TotalGWP <= gwp_limit;
+/*subject to Minimum_GWP_reduction :
+	TotalGWP <= gwp_limit;*/
 
 
 # [Eq. 37] Minimum share of RE in primary energy supply
@@ -424,8 +424,8 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 
 
 # [Eq. 39] Energy efficiency is a fixed cost
-/*subject to extra_efficiency:
-	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/	
+subject to extra_efficiency:
+	F ["EFFICIENCY"] = 1 / (1 + i_rate);
 
 
 # [Urban] Import when Feed_in

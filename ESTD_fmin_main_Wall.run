@@ -44,10 +44,10 @@ option cplex_options $cplex_options 'timelimit 64800 ';
 
 
 param PathName symbolic default "output/";
-	/*for {gwp in {5500 .. 250 by -250}}{{
+	/*for {gwp in {6000 .. 500 by -500}}{{
 		let TotalGWP := gwp; # GL : Assigner la nouvelle valeur du paramètre
 
-		let PathName := "analysis/Pareto/2020_NEW/Run" & gwp;*/
+		let PathName := "analysis/Pareto/2020/withincentivesandsolarthermal(n=2)/Run" & gwp;*/
 
 		print PathName;
 
