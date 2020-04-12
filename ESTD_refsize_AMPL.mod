@@ -183,7 +183,7 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 ## Multiplication factor
 
 # [Eq. 1.7] Number of purchased technologies. Integer variable (so that we have only integer multiples of the reference size)
-subject to number_of_units {j in TECHNOLOGIES diff INFRASTRUCTURE}:
+subject to number_of_units {j in TECHNOLOGIES diff INFRASTRUCTURE diff RENOVATION}:
 	Number_Of_Units [j] = F [j] / ref_size [j]; 
 	
 

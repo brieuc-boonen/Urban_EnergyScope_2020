@@ -46,6 +46,7 @@ set STORAGE_OF_END_USES_TYPES {END_USES_TYPES} within STORAGE_TECH; # set all st
 set INFRASTRUCTURE; # Infrastructure: DHN, grid, and intermediate energy conversion technologies (i.e. not directly supplying end-use demand)
 set RENOVATION;
 set HP;
+set REFSIZETECH;
 
 ## SECONDARY SETS: a secondary set is defined by operations on MAIN SETS
 set LAYERS := (RESOURCES diff BIOFUELS diff EXPORT diff IMPORT_FEED_IN) union END_USES_TYPES; # Layers are used to balance resources/products in the system
@@ -132,6 +133,7 @@ param c_inc_var {TECHNOLOGIES} >=0 default 0; # Incentive revenue
 ##Additional parameter (not presented in the paper)
 param total_time := sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} (t_op [h, td]); # [h]. added just to simplify equations
 param roof_limit default 6; # 
+param ngroup default 3; #
 
 
 #################################
@@ -155,7 +157,7 @@ var X_active {TECHNOLOGIES} binary;
 
 ##Dependent variables [Table 4] :
 var End_Uses {LAYERS, HOURS, TYPICAL_DAYS} >= 0; #EndUses [GW]: total demand for each type of end-uses (hourly power). Defined for all layers (0 if not demand). [Mpkm] or [Mtkm] for passenger or freight mobility.
-#var Number_Of_Units {TECHNOLOGIES} integer; # N: number of units of size ref_size which are installed.
+var Number_Of_Units {TECHNOLOGIES} integer; # N: number of units of size ref_size which are installed.
 var TotalCost >= -100000; # C_tot [ktCO2-eq./year]: Total GWP emissions in the system.
 var C_inv {TECHNOLOGIES} >= 0; #C_inv [MCHF]: Total investment cost of each technology
 var C_maint {TECHNOLOGIES} >= 0; #C_maint [MCHF/year]: Total O&M cost of each technology (excluding resource cost)
@@ -197,6 +199,12 @@ subject to end_uses_t {l in LAYERS, h in HOURS, td in TYPICAL_DAYS}:
 		else 
 			0 ))))))); # For all layers which don't have an end-use demand
 
+# Multiplication factor
+
+# [Eq. 1.7] Number of purchased technologies. Integer variable (so that we have only integer multiples of the reference size)
+subject to number_of_units {j in REFSIZETECH}:
+	Number_Of_Units [j] = F [j] / ref_size [j]; 
+
 ## Cost
 #------
 
@@ -225,12 +233,12 @@ subject to rinc_cost_cond {j in TECHNOLOGIES diff RENOVATION}:
 	(0.7 * C_inv [j]) >= R_inc [j] ;  /*+ c_inc_var [j] * F[j]*/ #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
 
 subject to rinc_cost_calc {j in TECHNOLOGIES diff RENOVATION}:
-	R_inc [j] <= (c_inc_fix [j] * X_active [j]  /*+ c_inc_var [j] * F[j]*/); #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
+	R_inc [j] <= (c_inc_fix [j] * ngroup * X_active [j]  /*+ c_inc_var [j] * F[j]*/); #sum {t in PERIODS, h in HOUR_OF_PERIOD [t], td in TYPICAL_DAY_OF_PERIOD [t]} ( F_t [j, h, td] * t_op [h, td] );
 
 subject to rren_cost_cond {j in RENOVATION}:
 	(0.7 * C_inv [j]) >= R_ren [j] ; 
 subject to rren_cost_calc {j in RENOVATION}:
-	R_ren [j] <= (c_inc_var [j] * F[j]);
+	R_ren [j] <= (c_inc_var [j] * ngroup * F[j]);
 	
 ## Emissions
 #-----------
@@ -404,8 +412,8 @@ subject to roof_lim:
 #-----------------------------------------------------------------------------------------------------------------------
 
 # [Eq. 36]  constraint to reduce the GWP subject to Minimum_gwp_reduction :
-/*subject to Minimum_GWP_reduction :
-	TotalGWP <= gwp_limit;*/
+subject to Minimum_GWP_reduction :
+	TotalGWP <= gwp_limit;
 
 
 # [Eq. 37] Minimum share of RE in primary energy supply
@@ -424,8 +432,8 @@ subject to f_min_perc {eut in END_USES_TYPES, j in TECHNOLOGIES_OF_END_USES_TYPE
 
 
 # [Eq. 39] Energy efficiency is a fixed cost
-subject to extra_efficiency:
-	F ["EFFICIENCY"] = 1 / (1 + i_rate);
+/*subject to extra_efficiency:
+	F ["EFFICIENCY"] = 1 / (1 + i_rate);*/
 
 
 # [Urban] Import when Feed_in
