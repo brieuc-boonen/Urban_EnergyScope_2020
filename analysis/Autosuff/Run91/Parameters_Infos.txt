@@ -1,0 +1,9 @@
+
+ auto_consumption_rate_input [%] = 0.000000
+ auto_consumption_rate_real [%] = 63.397124
+ auto_sufficiancy_input [%] = 9100.000000
+ auto_sufficiancy_real [%] = 0.910000
+ Network_losses [%] = 0.000000
+ re_share_primary = 0.000000
+ Share_Heat_Dhn = 100.000000
+ Share_Inf_cost = 

@@ -1,3 +1,0 @@
-
- Network_losses [%] = 0.000000
- re_share_primary = 0.000000

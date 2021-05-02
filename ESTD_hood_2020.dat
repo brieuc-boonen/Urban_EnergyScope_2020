@@ -1,0 +1,658 @@
+# -------------------------------------------------------------------------------------------------------------------------
+#	EnergyScope TD is an open-source energy model suitable for country scale analysis. It is a simplified representation of an urban or national energy system accounting for the energy flows
+#	within its boundaries. Based on a hourly resolution, it optimises the design and operation of the energy system while minimizing the cost of the system.
+#
+#	Copyright (C) <2018-2019> <Ecole Polytechnique Fédérale de Lausanne (EPFL), Switzerland and Université catholique de Louvain (UCLouvain), Belgium>
+#
+#	Licensed under the Apache License, Version 2.0 (the "License");
+#	you may not use this file except in compliance with the License.
+#	You may obtain a copy of the License at
+#
+#		http://www.apache.org/licenses/LICENSE-2.0
+#
+#	Unless required by applicable law or agreed to in writing, software
+#	distributed under the License is distributed on an "AS IS" BASIS,
+#	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#	See the License for the specific language governing permissions and 
+#	limitations under the License.
+#
+#	Description and complete License: see LICENSE file.
+# -------------------------------------------------------------------------------------------------------------------------
+
+# UNIT MEASURES:
+# Unless otherwise specified units are:
+# Energy [GWh], Power [GW], Cost [MCHF], Time [h], Passenger transport [Mpkm], Freight Transport [Mtkm]
+
+# References based on Supplementary material
+
+# -----
+# SETS not depending on TD
+# --------------------------
+
+set SECTORS := 	HOUSEHOLDS	SERVICES	TRANSPORTATION;
+set END_USES_INPUT := 	ELECTRICITY	LIGHTING	HEAT_LOW_T_SH	HEAT_LOW_T_HW	MOBILITY_PASSENGER	MOBILITY_FREIGHT;
+set END_USES_CATEGORIES := 	ELECTRICITY	HEAT_LOW_T	MOBILITY_PASSENGER	MOBILITY_FREIGHT;
+set RESOURCES :=	ELECTRICITY GASOLINE	DIESEL	BIOETHANOL	BIODIESEL	LFO	LNG	NG	NG_CCS	SNG	WOOD WASTE	H2	ELEC_EXPORT ELECTRICITY_FEED_IN RES_WIND RES_SOLAR RES_GEO;
+set BIOFUELS :=	BIOETHANOL	BIODIESEL	SNG;
+set RE_RESOURCES :=	 BIOETHANOL	BIODIESEL	SNG WOOD RES_WIND RES_SOLAR RES_GEO;
+set EXPORT := 	ELEC_EXPORT;
+set IMPORT_FEED_IN := ELECTRICITY_FEED_IN;
+
+set END_USES_TYPES_OF_CATEGORY["ELECTRICITY"] :=	ELECTRICITY;
+set END_USES_TYPES_OF_CATEGORY["HEAT_LOW_T"] :=	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN;
+set END_USES_TYPES_OF_CATEGORY["MOBILITY_PASSENGER"] :=	MOB_PUBLIC	MOB_PRIVATE;
+set END_USES_TYPES_OF_CATEGORY["MOBILITY_FREIGHT"] :=	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD;
+
+set TECHNOLOGIES_OF_END_USES_TYPE["ELECTRICITY"] := 	PV	WIND_HAWT WIND_VAWT;
+set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DHN"] := 	/*DHN_HP_ELEC	DHN_COGEN_GAS	DHN_COGEN_WOOD	DHN_COGEN_WASTE	DHN_BOILER_GAS	DHN_BOILER_WOOD	DHN_BOILER_OIL*/ DHN_ADVCOGEN_GAS  DHN_ADVCOGEN_H2  DHN_HP_ELEC_A2W DHN_HP_ELEC_G2W DHN_THHP_GAS_ED_A2W DHN_THHP_GAS_ED_G2W DHN_THHP_ABS_A2W    DHN_THHP_ABS_G2W  DHN_COGEN_GAS_S   DHN_COGEN_GAS_TURB_S  DHN_COGEN_GAS_TURB_M    DHN_COGEN_GAS_TURB_L  DHN_COGEN_GAS_CCGT_M  DHN_COGEN_GAS_CCGT_L    DHN_COGEN_GAS_ENG   DHN_COGEN_GAS_ENG_S  DHN_COGEN_WOOD_S DHN_COGEN_WOOD_M    DHN_COGEN_WOOD_L  DHN_COGEN_WASTE_S DHN_COGEN_WASTE_M DHN_COGEN_WASTE_L DHN_BOILER_GAS_S DHN_BOILER_GAS_M   DHN_BOILER_WOOD_S DHN_BOILER_WOOD_M DHN_BOILER_WOOD_L DHN_BOILER_OIL   DHN_BOILER_WASTE_S DHN_BOILER_WASTE_L DHN_BOILER_ELEC_S DHN_BOILER_ELEC_L  DHN_SOLAR DHN_DEEP_ABS DHN_DEEP_ELEC DHN_GEO;
+set TECHNOLOGIES_OF_END_USES_TYPE["HEAT_LOW_T_DECEN"] := 	DEC_HP_ELEC_A2A DEC_HP_ELEC_A2W DEC_HP_ELEC_A2W_small DEC_HP_ELEC_G2W	DEC_HP_ELEC_G2W_small DEC_HP_ELEC_G2W_big DEC_THHP_GAS_ABS_A2W DEC_THHP_GAS_ABS_G2W DEC_THHP_GAS_ADS_G2W	DEC_COGEN_GAS	DEC_COGEN_OIL	DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2	DEC_BOILER_GAS	DEC_BOILER_WOOD	DEC_BOILER_OIL  DEC_STOVE_WOOD	DEC_SOLAR	DEC_DIRECT_ELEC;
+set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PUBLIC"] := 	TRAMWAY_TROLLEY	BUS_COACH_DIESEL	BUS_COACH_HYDIESEL	BUS_COACH_CNG_STOICH	BUS_COACH_FC_HYBRIDH2	TRAIN_PUB;
+set TECHNOLOGIES_OF_END_USES_TYPE["MOB_PRIVATE"] := 	CAR_GASOLINE	CAR_DIESEL	CAR_NG	CAR_HEV	CAR_PHEV	CAR_BEV	CAR_FUEL_CELL;
+set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_RAIL"] :=	 TRAIN_FREIGHT;
+set TECHNOLOGIES_OF_END_USES_TYPE["MOB_FREIGHT_ROAD"] := 	TRUCK;
+
+set HOME_TECHNOLOGIES["ELECTRICITY"] := PV;
+
+set STORAGE_TECH :=	LNG_STO	 PHES BATT_LI   BATT_REDOX	BEV_BATT 	PHEV_BATT 	/*TS_DEC*/ TS_DEC_HP_ELEC_A2W_small TS_DEC_HP_ELEC_A2W TS_DEC_HP_ELEC_G2W_small TS_DEC_HP_ELEC_G2W TS_DEC_HP_ELEC_G2W_big TS_DEC_DIRECT_ELEC TS_DEC_THHP_GAS_ABS_A2W TS_DEC_THHP_GAS_ABS_G2W TS_DEC_THHP_GAS_ADS_G2W TS_DEC_COGEN_GAS TS_DEC_ADVCOGEN_GAS TS_DEC_COGEN_OIL TS_DEC_ADVCOGEN_H2 TS_DEC_BOILER_GAS TS_DEC_BOILER_WOOD TS_DEC_BOILER_OIL  TS_DHN_DAILY_S    TS_DHN_DAILY_M	  TS_DHN_SEASONAL_S TS_DHN_SEASONAL_M   TS_DHN_SEASONAL_L   SEASONAL_NG SEASONAL_H2;
+set INFRASTRUCTURE  :=	LINK_DEC2DHN    LINK_DHN2DEC    EFFICIENCY	DHN_SINGLE  DHN_SERVICE   DHN_STATIONS    DHN_SUBSTA	GRID /*POWER2GAS_in	POWER2GAS_out	POWER2GAS*/ 	H2_ELECTROLYSIS_SOEC    H2_ELECTROLYSIS_PEMEC   H2_ELECTROLYSIS_ALKA 	H2_NG	H2_BIOMASS	GASIFICATION_SNG	PYROLYSIS;
+set RENOVATION := ROOF FACADE FLOOR WINDOW;
+
+set REFSIZETECH := PV DEC_HP_ELEC_A2A DEC_SOLAR WIND_HAWT WIND_VAWT;
+#set MULTISIZED := 	DHN_COGEN_GAS_TURB_M    DHN_COGEN_GAS_TURB_L    DHN_COGEN_GAS_CCGT_M    DHN_COGEN_GAS_CCGT_L    DHN_COGEN_WOOD_S    DHN_COGEN_WOOD_M    DHN_COGEN_WOOD_L    DHN_COGEN_WASTE_S   DHN_COGEN_WASTE_M   DHN_COGEN_WASTE_L   DHN_BOILER_GAS_S    DHN_BOILER_GAS_M    DHN_BOILER_WOOD_S   DHN_BOILER_WOOD_M   DHN_BOILER_WOOD_L   DHN_BOILER_WASTE_L  DHN_BOILER_ELEC_L;
+
+
+# Storage subsets
+set EVs_BATT  := 	 BEV_BATT 	PHEV_BATT;
+set V2G   := CAR_PHEV	CAR_BEV;
+set STORAGE_DAILY := 	/*TS_DEC*/ TS_DEC_HP_ELEC_A2W_small TS_DEC_HP_ELEC_A2W TS_DEC_HP_ELEC_G2W_small TS_DEC_HP_ELEC_G2W TS_DEC_HP_ELEC_G2W_big TS_DEC_DIRECT_ELEC TS_DEC_THHP_GAS_ABS_A2W TS_DEC_THHP_GAS_ABS_G2W TS_DEC_THHP_GAS_ADS_G2W TS_DEC_COGEN_GAS TS_DEC_ADVCOGEN_GAS TS_DEC_COGEN_OIL TS_DEC_ADVCOGEN_H2 TS_DEC_BOILER_GAS TS_DEC_BOILER_WOOD TS_DEC_BOILER_OIL TS_DHN_DAILY_S TS_DHN_DAILY_M;
+
+set STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DHN"] := 	TS_DHN_DAILY_S  TS_DHN_DAILY_M 	TS_DHN_SEASONAL_S   TS_DHN_SEASONAL_M   TS_DHN_SEASONAL_L;
+set STORAGE_OF_END_USES_TYPES ["HEAT_LOW_T_DECEN"]   := 	/*TS_DEC*/ TS_DEC_HP_ELEC_A2W_small TS_DEC_HP_ELEC_A2W TS_DEC_HP_ELEC_G2W_small TS_DEC_HP_ELEC_G2W TS_DEC_HP_ELEC_G2W_big TS_DEC_DIRECT_ELEC TS_DEC_THHP_GAS_ABS_A2W TS_DEC_THHP_GAS_ABS_G2W TS_DEC_THHP_GAS_ADS_G2W TS_DEC_COGEN_GAS TS_DEC_ADVCOGEN_GAS TS_DEC_COGEN_OIL TS_DEC_ADVCOGEN_H2 TS_DEC_BOILER_GAS TS_DEC_BOILER_WOOD TS_DEC_BOILER_OIL;
+set STORAGE_OF_END_USES_TYPES ["ELECTRICITY"] := 	PHES 	BATT_LI BATT_REDOX;
+
+# Link between storages & specific technologies
+set TS_OF_DEC_TECH ["DEC_HP_ELEC_A2W_small"] := TS_DEC_HP_ELEC_A2W_small;
+set TS_OF_DEC_TECH ["DEC_HP_ELEC_A2W"] := TS_DEC_HP_ELEC_A2W;
+set TS_OF_DEC_TECH ["DEC_HP_ELEC_G2W_small"] := TS_DEC_HP_ELEC_G2W_small;
+set TS_OF_DEC_TECH ["DEC_HP_ELEC_G2W"] := TS_DEC_HP_ELEC_G2W;
+set TS_OF_DEC_TECH ["DEC_HP_ELEC_G2W_big"] := TS_DEC_HP_ELEC_G2W_big;
+set TS_OF_DEC_TECH ["DEC_DIRECT_ELEC"] := TS_DEC_DIRECT_ELEC;
+set TS_OF_DEC_TECH ["DEC_THHP_GAS_ABS_A2W"] := TS_DEC_THHP_GAS_ABS_A2W;
+set TS_OF_DEC_TECH ["DEC_THHP_GAS_ABS_G2W"] := TS_DEC_THHP_GAS_ABS_G2W;
+set TS_OF_DEC_TECH ["DEC_THHP_GAS_ADS_G2W"] := TS_DEC_THHP_GAS_ADS_G2W;
+set TS_OF_DEC_TECH ["DEC_COGEN_GAS"] := TS_DEC_COGEN_GAS;
+set TS_OF_DEC_TECH ["DEC_ADVCOGEN_GAS"] := TS_DEC_ADVCOGEN_GAS;
+set TS_OF_DEC_TECH ["DEC_COGEN_OIL"] := TS_DEC_COGEN_OIL;
+set TS_OF_DEC_TECH ["DEC_ADVCOGEN_H2"] := TS_DEC_ADVCOGEN_H2;
+set TS_OF_DEC_TECH ["DEC_BOILER_GAS"] := TS_DEC_BOILER_GAS;																									
+set TS_OF_DEC_TECH ["DEC_BOILER_WOOD"] := TS_DEC_BOILER_WOOD;																									
+set TS_OF_DEC_TECH ["DEC_BOILER_OIL"] := TS_DEC_BOILER_OIL;																									
+
+set EVs_BATT_OF_V2G ["CAR_PHEV"] := PHEV_BATT;
+set EVs_BATT_OF_V2G ["CAR_BEV"]  := BEV_BATT;
+
+# Additional sets, just needed for printing results
+# set COGEN	:=  IND_COGEN_GAS	IND_COGEN_WOOD	IND_COGEN_WASTE	DHN_COGEN_GAS	DHN_COGEN_WOOD	DHN_COGEN_WASTE DEC_COGEN_GAS	DEC_COGEN_OIL DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2;
+set COGEN	:=  DHN_COGEN_GAS_CCGT_M DHN_COGEN_GAS_CCGT_L DHN_COGEN_GAS_TURB_S DHN_COGEN_GAS_TURB_M DHN_COGEN_GAS_TURB_L DHN_COGEN_GAS_ENG DHN_COGEN_GAS_ENG_S  /*DHN_COGEN_GAS*/	DHN_COGEN_WOOD_S DHN_COGEN_WOOD_M DHN_COGEN_WOOD_L	DHN_COGEN_WASTE_S DHN_COGEN_WASTE_M DHN_COGEN_WASTE_L DHN_ADVCOGEN_GAS DHN_ADVCOGEN_H2 DEC_COGEN_GAS	DEC_COGEN_OIL DEC_ADVCOGEN_GAS	DEC_ADVCOGEN_H2;
+set BOILERS	:=	DHN_BOILER_ELEC_L DHN_BOILER_ELEC_S  DHN_BOILER_GAS_S   DHN_BOILER_GAS_M	DHN_BOILER_WOOD_S DHN_BOILER_WOOD_M DHN_BOILER_WOOD_L 	DHN_BOILER_OIL DHN_BOILER_WASTE_S DHN_BOILER_WASTE_L /*DEC_BOILER_GAS*/	/*DEC_BOILER_WOOD*/	DEC_BOILER_OIL;
+set HPS := DEC_HP_ELEC_A2A DEC_HP_ELEC_A2W DEC_HP_ELEC_A2W_small DEC_HP_ELEC_G2W DEC_HP_ELEC_G2W_small DEC_HP_ELEC_G2W_big DEC_THHP_GAS_ABS_A2W  DEC_THHP_GAS_ABS_G2W   DEC_THHP_GAS_ADS_G2W;
+
+
+# -----------------------------
+# PARAMETERS NOT DEPENDING ON the NUMBER OF TYPICAL DAYS :
+# -----------------------------
+
+## PARAMETERS presented in Table 2.
+param i_rate := 	0.015	; # part [2.7.4]
+param re_share_primary := 	0;
+param auto_consumption_rate := 0;
+param auto_sufficiancy_rate := -10;
+#param TotalGWP := 	1000;
+param gwp_limit = 7500	;	# gwp_limit [ktCO2-eq./year]: Minimum GWP reduction compare to year 2011 (47.51 MTCO2_eq)
+
+param peak_real_factor := 1.64; # peak_real_factor*surdim : 1.64*1.30
+param worst_year_factor := 1.30;
+
+# Part [2.4]
+param : Batt_per_Car := #ev_batt,size [GWh]: Size of batteries per car per technology of EV
+CAR_PHEV	4.40E-06
+CAR_BEV 	2.40E-05	;
+param n_car_max :=	6.55E+06	; # n_car_max [car]: Maximum number of cars
+param c_grid_extra :=	15.214E+03	; # cost to reinforce the grid due to intermittent renewable energy penetration. See 2.2.2
+
+
+
+################################################################################################
+################################# NEIGHBOURHOOD CHARACTERSTICS #################################
+################################################################################################
+param pop = 3000;
+
+# end_Uses_year see part [2.1]
+param end_uses_demand_year: 	HOUSEHOLDS	SERVICES	TRANSPORTATION	:=
+ELECTRICITY	0	0	0																					
+LIGHTING	2650.000 0	0																					
+HEAT_LOW_T_SH	15402.070	0	0																					
+HEAT_LOW_T_HW	2379.070	0	0																				
+MOBILITY_PASSENGER	0	0	0																					
+MOBILITY_FREIGHT	0	0	0
+;
+
+param share_mobility_public_min :=	0.199	;
+param share_mobility_public_max := 	0.5	;
+
+param share_freight_train_min := 	0.109	;
+param share_freight_train_max := 	0.25	;
+
+param share_heat_dhn_min := 	0	; #0.02
+param share_heat_dhn_max := 	1   ; #0.27
+
+param share_renovation_min :=   0   ;
+param share_renovation_max :=   1   ;
+
+#param roof_limit := 6; # Power limit for both solar technologies
+
+
+# Incentives
+/*
+## Green Certificates
+param c_gc := 0 ; # 94 [€/CV] * 1.81 [CV/MWh] / 1000 [kWh/MWh] Source : Brugel.Brussels
+param mult_factor :=												
+PV 0 #0.66 #0.528 #1.32*10/25
+;
+*/
+
+param lin_dens := 3.5;
+
+/*
+param c_inv["DHN_LINES"] := 1386*(18/lin_dens) + 2175; # UK prices
+#	c_inv["DHN_LINES"] = 1000*(18/lin_dens) + 3200 # DNK prices
+*/
+
+## Primes
+param ngroup := 3;
+param:    c_inc_fix    c_inc_var :=
+DEC_HP_ELEC_A2A	        1000 0
+DEC_HP_ELEC_A2W_small   1000 0
+DEC_HP_ELEC_A2W	        1000 0
+DEC_HP_ELEC_G2W_small   1000 0 
+DEC_HP_ELEC_G2W	        1000 0
+DEC_HP_ELEC_G2W_big     1000 0  
+DEC_THHP_GAS_ABS_A2W	1000 0 
+DEC_THHP_GAS_ABS_G2W	1000 0 
+DEC_THHP_GAS_ADS_G2W	1000 0
+DEC_BOILER_WOOD	        1000 0
+DEC_STOVE_WOOD	        500  0
+DEC_SOLAR               750  0
+ROOF                    0    0.0075
+FACADE                  0    0.0075   # 65 + 20 (GENERAL)
+FLOOR                   0    0.0075   
+WINDOW                  0    0.0075   # 15 * 1/20     
+;
+
+# f: efficiencies (data from Tables 19,21,22,23,25,29,30) 
+param layers_in_out: ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	WASTE	H2	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR  RES_GEO:=
+ELECTRICITY	        1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+GASOLINE	        0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+DIESEL	            0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BIOETHANOL	        0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BIODIESEL	        0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+LFO	                0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+LNG	                0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+NG	                0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0   0
+NG_CCS	            0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0   0
+SNG	                0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0   0
+WOOD	            0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0	0   0
+WASTE	            0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0	0   0
+H2	                0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0   0
+ELEC_EXPORT         -1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+ELECTRICITY_FEED_IN	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+RES_WIND 	        0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0   0
+RES_SOLAR  	        0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1   0
+RES_GEO             0   0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	1
+
+PV	                1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	-1   0
+#WIND	1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	-1	0
+WIND_HAWT	        1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	-1	0   0
+WIND_VAWT	        1	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	-1	0   0
+
+DHN_HP_ELEC_A2W	        -0.2564	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_HP_ELEC_G2W	        -0.2222	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+#DHN_HP_ELEC_A2W_S	    -0.2564	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0
+#DHN_HP_ELEC_G2W_S	    -0.2222 0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0
+
+DHN_THHP_ABS_A2W        0	0	0	0	0	-0.5847	0	0	0	0	1   0	0	0	0	0	0	0   0
+DHN_THHP_ABS_G2W        0	0	0	0	0	-0.5847	0	0	0	0	1   0	0	0	0	0	0	0   0
+DHN_THHP_GAS_ED_A2W	    0	0	0	0	0	-0.6896	0	0	0	0	1   0	0	0	0	0	0	0   0
+DHN_THHP_GAS_ED_G2W	    0	0	0	0	0	-0.6896	0	0	0	0	1   0	0	0	0	0	0	0   0
+#DHN_THHP_ABS_A2W_S     0	0	0	0	0	-0.6896	0	0	0	0	1   0	0	0	0	0	0	0
+#DHN_THHP_ABS_G2W_S     0	0	0	0	0	-0.6896	0	0	0	0	1   0	0	0	0	0	0	0
+
+#DHN_DEEP_ABS            0	0	0	0	0	-0.6060	0	0	0	0	1   0	0	0	0	0	0	0   0   
+DHN_DEEP_ABS        0	0	0	0	0	-0.3412	0	0	0	0	1   0	0	0	0	0	0	0   0   
+#DHN_DEEP_ELEC           -0.1824	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_DEEP_ELEC       -0.0843	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_GEO                 0	0	0	0	0	0	0	0	0	0	1   0	0	0	0	0	0	0   -1
+
+DHN_COGEN_GAS_S         0.57	0	0	0	0 -1.6949	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_TURB_S	0.6	    0	0	0	0 -2.143    0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_TURB_M	0.73     0	0	0	0 -2.128    0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_TURB_L	0.96   	0	0	0	0 -2.404    0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_CCGT_M	1.30	0	0	0	0 -2.77	    0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_CCGT_L	1.80	0	0	0	0 -3.214    0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_ENG	    0.95	0	0	0	0	-2.114	0	0	0	0   1	0	0	0	0	0	0	0   0
+DHN_COGEN_GAS_ENG_S	    0.95	0	0	0	0	-2.114	0	0	0	0   1	0	0	0	0	0	0	0   0
+DHN_COGEN_WOOD_S	    0.15	0	0	0	0	0	0 -1.0799	0	0	1	0	0	0	0	0	0   0   0	
+DHN_COGEN_WOOD_M	    0.37	0	0	0	0	0	0 -1.3123	0	0	1	0	0	0	0	0	0   0   0	
+DHN_COGEN_WOOD_L	    0.37	0	0	0	0	0	0 -1.3106	0	0	1	0	0	0	0	0	0   0   0	
+DHN_COGEN_WASTE_S	    0.29	0	0	0	0	0	0	0	-1.3426	0	1	0	0	0	0	0	0   0   0
+DHN_COGEN_WASTE_M	    0.30	0	0	0	0	0	0	0	-1.3574	0	1	0	0	0	0	0	0   0   0	
+DHN_COGEN_WASTE_L       0.30	0	0	0	0	0	0	0	-1.3430	0	1	0	0	0	0	0	0   0   0
+
+DHN_ADVCOGEN_GAS	0.5859	0	0	0	0	-1.6694	0	0	0	0	1   0	0	0	0	0	0	0   0
+DHN_ADVCOGEN_H2	        1	0	0	0	0	0	0	0	0	-2.1276	1   0	0	0	0	0	0	0   0
+
+DHN_BOILER_GAS_S	    0	0	0	0	0	-0.9524	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_GAS_M	    0	0	0	0	0	-0.9524	0	0	0	0	1	0	0	0	0	0	0	0   0
+#DHN_BOILER_WOOD	    0	0	0	0	0	0	0	-0.8772	0	0	1	0	0	0	0	0	0	0
+DHN_BOILER_WOOD_S	    0	0	0	0	0	0	0	-0.8772	0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_WOOD_M	    0	0	0	0	0	0	0	-0.8703	0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_WOOD_L       0	0	0	0	0	0	0	-0.8703	0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_OIL	        0	0	0	-1.1461	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_WASTE_S      0	0	0	0	0	0	0	0   -0.9469	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_WASTE_L      0	0	0	0	0	0	0	0   -0.9469	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_ELEC_S   -1.01	0	0	0	0	0	0	0   0	0	1	0	0	0	0	0	0	0   0
+DHN_BOILER_ELEC_L   -1.01	0	0	0	0	0	0	0   0	0	1	0	0	0	0	0	0	0   0
+
+DHN_SOLAR               0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	-1   0
+
+LINK_DEC2DHN            0	0	0	0	0	0	0	0	0	0	1	-1	0	0	0	0	0	0   0
+LINK_DHN2DEC            0	0	0	0	0	0	0	0	0	0	-1	1	0	0	0	0	0	0   0
+
+#DEC_HP_ELEC	    -0.3333	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_HP_ELEC_A2A	    -0.2564	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_HP_ELEC_A2W_small	-0.2817	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_HP_ELEC_A2W	    -0.2439	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_HP_ELEC_G2W_small	-0.2740 0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_HP_ELEC_G2W	    -0.2222 0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_HP_ELEC_G2W_big	-0.2740 0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+
+#DEC_THHP_GAS	0	0	0	0	0	-0.6667	0	0	0	0	0	1	0	0	0	0	0	0
+DEC_THHP_GAS_ABS_A2W	0	0	0	0	0	-0.6896	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_THHP_GAS_ABS_G2W	0	0	0	0	0	-0.6896	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_THHP_GAS_ADS_G2W	0	0	0	0	0	-0.7407	0	0	0	0	0	1	0	0	0	0	0	0   0
+
+DEC_COGEN_GAS	    0.9565	0	0	0	0	-2.1739	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_COGEN_OIL	    0.907	0	0	-2.3256	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+
+DEC_ADVCOGEN_GAS	0.5859	0	0	0	0	-1.6694	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_ADVCOGEN_H2	    1	    0	0	0	0	0	0	0	0	-2.1276	0	1	0	0	0	0	0	0   0
+
+DEC_BOILER_GAS	    0	    0	0	0	0	-1.0309	0	0	0	0	0	1	0	0	0	0	0	0   0
+DEC_BOILER_WOOD	    0	    0	0	0	0	0	0	-1.2195	0	0	0	1	0	0	0	0	0	0   0
+DEC_BOILER_OIL	    0   	0	0	-1.0869	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+
+DEC_STOVE_WOOD      0   	0	0	0	0	0	0	-1.4286	0	0	0	1	0	0	0	0	0	0   0
+DEC_SOLAR	        0   	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	-1   0
+DEC_DIRECT_ELEC	    -1  	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+
+TRAMWAY_TROLLEY	    -0.1653	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0   0
+BUS_COACH_DIESEL	    0	0	-0.2655	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0   0
+BUS_COACH_HYDIESEL  	0	0	-0.1828	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0   0
+BUS_COACH_CNG_STOICH	0	0	0	0	0	-0.3062	0	0	0	0	0	0	1	0	0	0	0	0   0
+BUS_COACH_FC_HYBRIDH2	0	0	0	0	0	0	0	0	0	-0.2255	0	0	1	0	0	0	0	0   0
+TRAIN_PUB	        -0.0917	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0   0
+CAR_GASOLINE	        0	-0.4297	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_DIESEL	            0	0	-0.3868	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_NG	                0	0	0	0	0	-0.4826	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_HEV	                0	-0.2471	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_PHEV	        -0.0365	-0.176	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_BEV	            -0.0863	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0   0
+CAR_FUEL_CELL	     0	0	0	0	0	0	0	0	0	-0.1794	0	0	0	1	0	0	0	0   0
+TRAIN_FREIGHT	    -0.0683	0	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0   0
+TRUCK	                0	0	-0.5126	0	0	0	0	0	0	0	0	0	0	0	0	1	0	0   0
+EFFICIENCY	            0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+#DHN	                    0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+
+#DHN_LINES	            0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+DHN_SINGLE	            0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+DHN_SERVICE	            0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+DHN_STATIONS            0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+DHN_SUBSTA              0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+
+GRID	                0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+
+#H2_ELECTROLYSIS	-1.1765	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0
+H2_ELECTROLYSIS_SOEC	-1.1184	0	0	0	0	0	0	0	0	1	-0.1578	0	0	0	0	0	0	0   0
+H2_ELECTROLYSIS_PEMEC	-1.2658	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0	0   0
+H2_ELECTROLYSIS_ALKA	-1.5723	0	0	0	0	0	0	0	0	1	0.22	0	0	0	0	0	0	0   0
+#H2_NG	0	0	0	0	0	-1.3646	0	0	0	1	0	0	0	0	0	0	0	0
+H2_NG	                    0	0	0	0	0	-1.3646	0	0	0	1	0	0	0	0	0	0	0	0   0
+#H2_BIOMASS	0	0	0	0	0	0	0	-2.3121	0	1	0	0	0	0	0	0	0	0
+H2_BIOMASS	                0	0	0	0	0	0	0	-2.3121	0	1	0	0	0	0	0	0	0	0   0
+
+#GASIFICATION_SNG	0.0426	0	0	0	0	1	0	-1.3514	0	0	0.1217	0	0	0	0	0	0	0
+GASIFICATION_SNG	        0  	0	0	0	0	1	0	-1.6666	0	0	0.3333	0	0	0	0	0	0	0   0
+#PYROLYSIS	        0.0238	0	0	1	0	0	0	-1.5017	0	0	0	0	0	0	0	0	0	0
+PYROLYSIS	            0.0266	0	0	1	0	0	0	-1.6666	0	0	0.3866	0	0	0	0	0	0	0   0
+
+ROOF                0	    0	0	0	0	0	0	    0	0	0	0	0	0	0	0	0	0	0   0
+FACADE              0	    0	0	0	0	0	0	    0	0	0	0	0	0	0	0	0	0	0   0
+FLOOR               0   	0	0	0	0	0	0	    0	0	0	0	0	0	0	0	0	0	0   0
+WINDOW              0	    0	0	0	0	0	0	    0	0	0	0	0	0	0	0	0	0	0   0
+;
+
+# Technologies data from Tables (10,19,21,22,23,25,27,28,29,30) and part [2.2.1.1] for hydro
+param:	                ref_size	c_inv	c_maint	gwp_constr	lifetime	c_p	    fmin_perc	fmax_perc	f_min	f_max :=
+#WIND	                3000	    1040	        2.89	622.85	    30	        1	    0	        1	        0.1	    0
+WIND_HAWT	            500 	    1120/*2080*//*1040*/	14/*2.89*/	622.85	    30	1	    0	        1	        2000    0#100000#1000
+WIND_VAWT               10	        3800	        95/*95*/	622.85	    20	        1	    0	        1	        10	    0#1300000		# Fairwind	
+
+#DHN_HP_ELEC	        1000	    344.76	        11.995	174.79	    25	        0.95	0	        1	        0.1	    300
+#DHN_HP_ELEC	        4000	    700 	        2   	174.79	    25	        0.95	0	        1	        0.1	    300
+#DHN_HP_ELEC_A2W	    400	        352.5	        4.125	174.79	    20	        1	    0	        1	        140     100000
+
+DHN_HP_ELEC_A2W	        400	        700/*400*/ 	        2   	174.79	    20/*25*/	        1	    0	        1	        200     10000000
+DHN_HP_ELEC_G2W	        400	        800/*660*/ 	        2   	174.79	    20/*25*/	        1	    0	        1	        200	    10000000
+
+#DHN_THHP_ABS_A2W	    12000       560 	        2   	381.93	    25	        0.95    0	        1	        0.1	    100000
+DHN_THHP_ABS_A2W	    80	        212.5	        2.9375	381.93	    20	        1	    0	        1	        80 	    10000000
+DHN_THHP_ABS_G2W	    80	        387.5	        2.9375	381.93	    20	        1	    0	        1	        80 	    10000000
+DHN_THHP_GAS_ED_A2W	    50	        80	            4.7	    381.93	    20	        1	    0	        1	        50	    10000000
+DHN_THHP_GAS_ED_G2W	    50	        360	            4.7	    381.93	    20	        1	    0	        1	        50      10000000
+
+DHN_DEEP_ABS             5000       2090	        17.3    808.76	    25	        0.9	    0	        1	        5000    0#10000000
+DHN_DEEP_ELEC            5000       2880	        24.5    808.76	    25	        0.9	    0	        1	        5000    0#10000000
+DHN_GEO                  5000       1500	        57	    808.76	    30	        0.85	0	        1	        0	    0#2000000	
+
+DHN_COGEN_GAS_S         25          400             37.7531 490.88      15          0.85    0           1           25      0#300 ???
+DHN_COGEN_GAS_TURB_S	30          2000            40      490.88      15          0.90    0           1           50      0#10000
+DHN_COGEN_GAS_TURB_M	10000       1000            26.7    490.88      25          0.95    0           1           6250    0#40000
+DHN_COGEN_GAS_TURB_L	10000       615             20.3    490.88      25          0.95    0           1           40000   0#100000
+DHN_COGEN_GAS_CCGT_M	10000       1000            22.53   490.88      25          0.9     0           1           7000    0#100000
+DHN_COGEN_GAS_CCGT_L	100000      488.88          16.27   490.88      25          0.9     0           1           50000   0#1000000
+DHN_COGEN_GAS_ENG	    1000	    950	            9.75	30	        25	        0.9	    0	        1	        1000    400000
+DHN_COGEN_GAS_ENG_S 	1000	    1200	        13.75	30	        25	        0.9	    0	        1	        5       40000
+DHN_COGEN_WOOD_S  	    2900	    945             42.15  	165.33	    25	        0.9	    0	        1	        14000   0#100000
+DHN_COGEN_WOOD_M  	    23800	    1295	        55.13	165.33	    25	        0.9	    0	        1	        60000	0#1000000
+DHN_COGEN_WOOD_L  	    182000	    1221            35.15	165.33	    25	        0.9	    0	        1	        500000	0#1000000
+##DHN_COGEN_WOOD	    1000	    1080.79	        40.491	165.33	    25	        0.85	0	        1	        1000    0#100000
+DHN_COGEN_WASTE_S	    8000	    3016	        119.19 	647.82	    25	        0.93	0	        1	        25000	0#1000000
+DHN_COGEN_WASTE_M	    19000	    2700	        78.6	647.82	    25	        0.93	0	        1	        57000	0#1000000
+DHN_COGEN_WASTE_L       53000	    2340     	    55.8	647.82	    25	        0.93	0	        1	        175000	0#1000000
+#DHN_COGEN_WASTE	    1000	    2927.87	        111.32	647.82	    25	        0.93	0	        1	        1000    100000
+#DHN_COGEN_WET_BIOMASS	1000        2287	        228.7	1024	    25	        0.75	0	        1	        0.1	    100000
+
+DHN_ADVCOGEN_GAS	    1000		3300	        165 	2193.45     25	        0.9	    0           1	        1000/*29741*/	31971.3			
+DHN_ADVCOGEN_H2	        1000		1300            165 	2193.45     25	        0.9	    0	        1	        1000/*29741*/	31971.3	
+
+#DHN_BOILER_GAS	        10	        58.8913	        1.1799	12.32	    17	        0.95	0	        1	        0.1	    300
+DHN_BOILER_GAS_S	    400	        110     	    1.95	12.32	    25	        0.99	0	        1	        70	    10000 /*110 for low capacity*/
+DHN_BOILER_GAS_M	    400	        60      	    1.95	12.32	    25	        0.99	0	        1	        500	    100000000 /*110 for low capacity*/
+#DHN_BOILER_WOOD	    10	        115.179         2.3036	28.87	    17	        0.9	    0	        1	        0.1	    300
+DHN_BOILER_WOOD_S	    6800	    690	            32.5    28.87       25	        1	    0	        1	        5000	    100000
+DHN_BOILER_WOOD_M	    51600	    490	            42      28.87       25	        1	    0	        1	        50000	0#    1000000
+DHN_BOILER_WOOD_L       10340       440	            34.6    28.87       25	        1	    0	        1	        80000	0#    1000000
+#DHN_BOILER_OIL	        10	        54.8553	        1.1799	12.32	    17	        0.95	0	        1	        0.1	    300
+DHN_BOILER_OIL	        400	        85.25	        2.09	12.32       20	        1	    0	        1	        500	    0#10000
+DHN_BOILER_WASTE_S	    39.9	    1940	        78	    30	        15	        0.9	    0	        1	        500  	10000 # not so sure of such a small fmin value RANDOM VALUE WHERE DOES IT COME FROM ?
+DHN_BOILER_WASTE_L	    36900	    1740	        64.7	30	        25	        0.9	    0	        1	        35000  	0#100000 
+DHN_BOILER_ELEC_S	    400	        150	            1.07	1.47	    20	        0.96	0	        1	        250	    10000
+DHN_BOILER_ELEC_L	    400	        70	            1.07	1.47	    20	        0.96	0	        1	        5000    0#100000
+
+DHN_SOLAR               10          274.42	        0.433	221.22	    30	        1	    0	        1/*0.5*/	0.7	    1000000000
+#DHN_SOLAR	            0.7	        809/*857.143*/	16.190	221.22	    25	        1	    0	        1	        0.7     10000        # Danish Enegy Agency
+
+LINK_DEC2DHN            10          0.01	        0   	0   	    1	        1	    0	        1       	0.1	    0#1000000000
+LINK_DHN2DEC            10          0.01            0   	0   	    1	        1	    0	        1       	0.1	    0#100000
+
+PV	                    0.25	    1130	13.44	2081.43	    25	        1	    0	        1	        0.25    100000000          # real_f_min : 0.25 (brussel pv website)
+
+DEC_HP_ELEC_A2A	        2           425     27  	164.89	    12	        1	    0	        0.6	        2	    30      # Vaillant climaVAIR
+DEC_HP_ELEC_A2W_small	2.5         1269/*1750*/    27.800  164.89	    18	        1	    0	        1	        3/*4*/	30          # Vaillant aroTHERM split ((3)5kW-12kW)
+DEC_HP_ELEC_A2W	        2.5         682/*848/*940*/      27.800	164.89	    18	        1	    0	        1	        8/*10*/	30          # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_HP_ELEC_G2W_small	2.5         1800    27.800	164.89	    20	        1	    0	        1	        6	    30          # 
+DEC_HP_ELEC_G2W	        2.5         1300    27.800	164.89	    20	        1	    0	        1	        10      32          # real_f_min : 6.5 (air-eau) (telephone thema)
+DEC_HP_ELEC_G2W_big	    2.5         745     27.800	164.89	    20	        1	    0	        1	        18	    50          # Vaillant geoTHERM 22kw+
+DEC_THHP_GAS_ABS_A2W    0.5         600/*722.22*/   13.05   381.93      20          1       0           1           18      60
+DEC_THHP_GAS_ABS_G2W    0.5         866.66          13.05   381.93      20          1       0           1           18      60
+DEC_THHP_GAS_ADS_G2W    0.5         1300            23.5    381.93      20          1       0           1           10      0#60
+DEC_COGEN_GAS	        0.5	        1408.03	92.612	1024.32	    20	        1	    0	        1	        5       0#30        # real_f_min : 1 (H.I. Onovwiona)
+DEC_COGEN_OIL	        0.5	        1305.56	81.965	1024.32	    20	        1	    0	        1	        5       0#30        # same OM as above (reasonable)
+DEC_ADVCOGEN_GAS	    0.5	        10084   666.66	2193.45	    20	        1	    0	        1	        1.19	0#30        # real_f_min : 0.3 (ENGIE)
+DEC_ADVCOGEN_H2	        0.1	        15714.2	1000	2193.45	    20	        1	    0	        1	        0.70    0#30        # same
+DEC_BOILER_GAS	        0.5	        310  	4.75	21.09	    20	        1	    0	        1	        11	    30        # Viesmann vitodens
+DEC_BOILER_WOOD	        0.5	        680 	16.18  	21.09	    20	        1	    0	        1	        10	    0#30        # min real_f_min : 6-10
+DEC_BOILER_OIL	        0.5	        393.333	8.540	21.09	    20	        1	    0	        1	        15	    0#70        # Vaillant icoVIT exclusiv
+DEC_STOVE_WOOD	        0.5	        500 	29  	21.09	    20	        1	    0	        0.2	        3	    0#12        # min real_f_min : 6-10
+DEC_SOLAR	            0.7	        809/*857.143*/	16.190	    221.22	    25	    1	        0	        1	    0.7       10000        # Danish Enegy Agency
+DEC_DIRECT_ELEC	        0.5         966.667	8       1.47	    30	        1	    0	        1	        3       30        # min
+
+TRAMWAY_TROLLEY	1	0	0	0	1	1	0	0.3	0.1	16.7
+BUS_COACH_DIESEL	1	0	0	0	1	1	0	0.3	0.1	16.7
+BUS_COACH_HYDIESEL	1	0	0	0	1	1	0	0.3	0.1	16.7
+BUS_COACH_CNG_STOICH	1	0	0	0	1	1	0	0.3	0.1	16.7
+BUS_COACH_FC_HYBRIDH2	1	0	0	0	1	1	0	0.2	0.1	16.7
+TRAIN_PUB	1	0	0	0	1	1	0	0.8	0.1	16.7
+CAR_GASOLINE	1	0	0	0	1	1	0.2	1	0.1	16.7
+CAR_DIESEL	1	0	0	0	1	1	0.2	1	0.1	16.7
+CAR_NG	1	0	0	0	1	1	0	0.5	0.1	16.7
+CAR_HEV	1	0	0	0	1	1	0	0.3	0.1	16.7
+CAR_PHEV	1	0	0	0	1	1	0	0.3	0.1	16.7
+CAR_BEV	1	0	0	0	1	1	0	0.3	0.1	16.7
+CAR_FUEL_CELL	1	0	0	0	1	1	0	0.2	0.1	16.7
+TRAIN_FREIGHT	1	0	0	0	1	1	0	1	0.92	3.2
+TRUCK	1	0	0	0	1	1	0	1	0.92	3.2
+EFFICIENCY	0.1	    3320	0	    0	1	    1	0	1	0.1	20
+
+
+
+#DHN_SINGLE              0.1	        0    0	    0	    40	        1	    0	        1	        0.1	    100000
+#DHN_SERVICE             0.1	        0    0	    0	    40	        1	    0	        1	        0.1	    100000
+#DHN_STATIONS            0.1	        0    0	    0	    40	        1	    0	        1	        0.1	    100000      # 90 or 190 for larger hoods
+#DHN_SUBSTA              10	        0    0	    0	    25	        1	    0	        1	        0.1	    100000      # 39 for apartement  
+
+
+DHN_SINGLE              0.1	        640/*1386*/    0	    0	    40	        1	    0	        1	        0.1	    100000
+DHN_SERVICE             0.1	        3200/*2175*/    0	    0	    40	        1	    0	        1	        0.1	    100000
+DHN_STATIONS            0.1	        240     0	    0	    40	        1	    0	        1	        0.1	    100000      # 90 or 190 for larger hoods
+DHN_SUBSTA              10	        210     5.6	    0	    25	        1	    0	        1	        0.1	    100000      # 39 for apartement  
+
+/*
+DHN_LINES               0.1	        4700    0	    0	    50	        1	    0	        1	        0.1	    100000
+DHN_STATIONS            0.1	        240     0	    0	    50	        1	    0	        1	        0.1	    100000      # 90 or 190 for larger hoods
+DHN_SUBSTA              10	        210     5.6	    0	    25	        1	    0	        1	        0.1	    100000      # 39 for apartement  
+*/
+
+GRID 	                0.1	        74919	0	    0	        80	        1	    0	        1	        0.1	    20
+
+
+
+#H2_ELECTROLYSIS	    0.01	    600	    30	    0	        15	        0.9	    0	        1	        0.1	    20
+#H2_NG	                0.01	    681.243	64.435	0	        25	        0.86	0	        1	        0.1	    20
+#H2_BIOMASS 	        0.01	    2525.38	195.702	0	        25	        0.86	0	        1	        0.1	    20
+H2_ELECTROLYSIS_SOEC    0.01	    2200	30	    0	        20	        0.9	    0	        1	        1000	0#100000
+H2_ELECTROLYSIS_PEMEC   0.01	    1100	55	    0	        15	        0.9	    0	        1	        1000/*0*/	0#100000
+H2_ELECTROLYSIS_ALKA    0.01	    600	    30	    0	        25	        0.9	    0	        1	        1000/*0*/	0#100000
+H2_NG	                0.01	    681.243	64.435	0	        25	        0.86	0	        1	        1000    0#100000
+H2_BIOMASS	            0.01	    2525.39	195.702	0	        25	        0.86	0	        1	        1000    0#100000
+
+#GASIFICATION_SNG	    20000	    2743.81 139.938	0	        25	        0.85	0	        1	        0.1	    100000
+GASIFICATION_SNG	    20000	    2500	40	    0	        20	        0.95	0	        1	        2000    0#100000
+#PYROLYSIS	            0.01	    1344.22	67.207	0	        25	        0.85	0	        1	        0.1	    100000
+PYROLYSIS	            0.01	    1900	0.72	0	        25	        0.95	0	        1	        1000    0#100000
+
+SEASONAL_NG	            10	        0.05116	0.00131	0	        30	        1	    0	        1	        0	    0#10000000
+SEASONAL_H2	            10	        570	    0.6     0	        25	        1	    0	        1	        0	    0#100000
+
+#param:	                ref_size	c_inv	c_maint	gwp_constr	lifetime	c_p	    fmin_perc	fmax_perc	f_min	f_max :=
+LNG_STO	                0.01        0.4144	0	    0	        25	        1	    0	        1	        0.1	    100000
+BATT_LI	                1   	    730	    0.62    61.3	    20	        1	    0	        1	        2.2	    100000 #150% of DEA price
+BATT_REDOX              2000	    600	    8	    61.3	    20	        1	    0	        1	        2.2	    100000
+BEV_BATT	            0.005	    0	    0	    0	        1	        1	    0	        1	        0.1	    0
+PHEV_BATT	            0.01	    0	    0	    0	        1	        1	    0	        1	        0.1	    0
+PHES	                0.01	    58.8	0	    8.33	    50	        1	    0	        1	        0.1	    0
+# TS_DEC	            0.01	    130      2      0	        30	        1	    0	        1	        2	    100000  # Vaillant uniSTOR plus 300
+TS_DEC_DIRECT_ELEC 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_HP_ELEC_A2W_small 0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_HP_ELEC_A2W 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_HP_ELEC_G2W_small 0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_HP_ELEC_G2W 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_HP_ELEC_G2W_big 	0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_THHP_GAS_ABS_A2W 0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_THHP_GAS_ABS_G2W 0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_THHP_GAS_ADS_G2W 0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_COGEN_GAS 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_COGEN_OIL 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_ADVCOGEN_GAS 	0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_ADVCOGEN_H2 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_BOILER_GAS 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_BOILER_WOOD 	    0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+TS_DEC_BOILER_OIL       0.01	    130      2      0	        30	        1	    0	        1	        0.1	    100000
+
+TS_DHN_DAILY_S	        0.01	    90      1       0	        40	        1	    0	        1	        100	    100000000 #    65      1    ||   7.3     0.0086    
+TS_DHN_DAILY_M	        0.01	    3.84    0.0086	0	        40	        1	    0	        1	        40000   0#100000000 
+TS_DHN_SEASONAL_S	    0.01	    3.84	0.003	0	        20	        1	    0	        1	        40000   100000000   # CAPEX : https://www.researchgate.net/publication/265048526_Analysis_of_Large_Thermal_Energy_Storage_for_Solar_District_Heating
+TS_DHN_SEASONAL_M	    0.01	    1	    0.003	0	        20	        1	    0	        1	        1000000 100000000   # CAPEX : https://www.researchgate.net/publication/265048526_Analysis_of_Large_Thermal_Energy_Storage_for_Solar_District_Heating
+TS_DHN_SEASONAL_L	    0.01	    0.58	0.003	0	        20	        1	    0	        1	        8000000 0#1000000000  # CAPEX : https://www.researchgate.net/publication/265048526_Analysis_of_Large_Thermal_Energy_Storage_for_Solar_District_Heating
+
+ROOF                    0.01	    0.14	0	    0	        1	        1	    0	        0.14        0.1	    100000000000
+FACADE                  0.01	    0.09	0	    0	        1	        1	    0	        0.28        0.1	    100000000000
+FLOOR                   0.01	    0.24	0	    0	        1	        1	    0	        0.05        0.1	    100000000000
+WINDOW                  0.01	    0.33	0	    0	        1	        1	    0	        0.10        0.1	    100000000000
+/*ROOF_DEEP             0.01	    0.14	0	    0	        1	        1	    0	        0.14        0.1	    100000
+FACADE_DEEP             0.01	    0.11	0	    0	        1	        1	    0	        0.45        0.1	    100000
+FLOOR_DEEP              0.01	    0.24	0	    0	        1	        1	    0	        0.05        0.1	    100000
+WINDOW_DEEP             0.01	    0.33	0	    0	        1	        1	    0	        0.10        0.1	    100000*/
+;
+
+# RESOURCES: part [2.5] (Table 26)
+param:	avail	gwp_op	c_op	:=
+ELECTRICITY	        1000000	0.29	0.2861 #0.084335191
+ELECTRICITY_FEED_IN 1000000	0       0.137477# (data Notion Wallonie)
+GASOLINE	        1000000	0.3448	0.082366044
+DIESEL	            1000000	0.3148	0.079743788
+BIOETHANOL	        0	    0	    0.082366044
+BIODIESEL	        0   	0	    0.079743788
+LFO	                1000000 0.3115	0.064
+LNG	                0	    0.2666	0.0519 #0.041454118 # no price in BEL data so set same as NG
+NG	                1000000	0.251	0.0519 
+NG_CCS	            1000000	0.0118	0.045 #0.041454118
+SNG	                0	    0.0118	0.041454118
+WOOD	            12279	0.0118	0.0514 #0.01460735#0.045#
+WASTE	            11142	0.1501	0.02664#0.01332#0.02664#0.01002601#
+H2	                0	    0	    0
+ELEC_EXPORT	        1000000	0	    0 #-0.084335191
+RES_WIND	        1000000	0	    0
+RES_SOLAR	        1000000	0	    0
+RES_GEO	            1000000	0	    0
+;
+
+
+# Storage inlet/outlet efficiency : part [2.6] (Table 28) and part [2.2.1.1] for hydro.
+param storage_eff_in:	ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	WASTE	H2	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR   RES_GEO:=
+LNG_STO	                    0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+PHES	                   0.9	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BATT_LI	                   0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BATT_REDOX                 0.92	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BEV_BATT	               0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+PHEV_BATT	               0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+# TS_DEC 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+TS_DEC_DIRECT_ELEC          0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_A2W_small	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_A2W 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W_small 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W_big	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ABS_A2W 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ABS_G2W 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ADS_G2W 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_COGEN_GAS 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_COGEN_OIL 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_ADVCOGEN_GAS 	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_ADVCOGEN_H2 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_GAS 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_WOOD	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_OIL	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DHN_DAILY_S	            0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_DAILY_M	            0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_S           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_M           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_L           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+SEASONAL_NG	                0	0	0	0	0  0.99	0	0	0	0	0	0	0	0	0	0	0	0   0
+SEASONAL_H2	                0	0	0	0	0	0	0	0	0	0  0.98	0	0	0	0	0	0	0   0
+;
+
+param storage_eff_out:	ELECTRICITY	GASOLINE	DIESEL	LFO	LNG	NG	NG_CCS	WOOD	WASTE	H2	HEAT_LOW_T_DHN	HEAT_LOW_T_DECEN	MOB_PUBLIC	MOB_PRIVATE	MOB_FREIGHT_RAIL	MOB_FREIGHT_ROAD	RES_WIND	RES_SOLAR   RES_GEO:=
+LNG_STO	                    0	0	0	0	1	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+PHES	                   0.9	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BATT_LI	                   0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BATT_REDOX                 0.92	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+BEV_BATT	               0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+PHEV_BATT	               0.95	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0   0
+# TS_DEC 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0
+TS_DEC_DIRECT_ELEC	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0   0   0
+TS_DEC_HP_ELEC_A2W_small 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_A2W 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W_small 	0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W 	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_HP_ELEC_G2W_big 	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ABS_A2W	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ABS_G2W	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_THHP_GAS_ADS_G2W	    0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_COGEN_GAS	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_COGEN_OIL	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_ADVCOGEN_GAS	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_ADVCOGEN_H2	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_GAS	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_WOOD	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DEC_BOILER_OIL	        0	0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0   0
+TS_DHN_DAILY_S	            0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_DAILY_M	            0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_S           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_M           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+TS_DHN_SEASONAL_L           0	0	0	0	0	0	0	0	0	0	1	0	0	0	0	0	0	0   0
+SEASONAL_NG	                0	0	0	0	0  0.99 0	0	0	0	0	0	0	0	0	0	0	0   0
+SEASONAL_H2	                0	0	0	0	0	0	0	0	0	0 0.98	0	0	0	0	0	0	0   0
+;
+# Storage characteristics : part [2.6] (Table 28) and part [2.2.1.1] for hydro.
+param :	storage_charge_time	storage_discharge_time	storage_availability	storage_losses	:=
+LNG_STO	                    1	    1	1	    0
+PHES	                4.8309	4.2955	1	    0
+BATT_LI	                    4	    4	1	    0.0002
+BATT_REDOX	                4	    4	1	    0.0002
+BEV_BATT	                10	    4	0.2	    0.0002
+PHEV_BATT	                10	    4	0.2	    0.0002
+# TS_DEC 	4	4	1	0.00824
+TS_DEC_DIRECT_ELEC 	4	4	0	0.00824
+TS_DEC_HP_ELEC_A2W_small 	4	4	1	0.00824
+TS_DEC_HP_ELEC_A2W 	4	4	1	0.00824
+TS_DEC_HP_ELEC_G2W_small 	4	4	1	0.00824
+TS_DEC_HP_ELEC_G2W 	4	4	1	0.00824
+TS_DEC_HP_ELEC_G2W_big 	4	4	1	0.00824
+TS_DEC_THHP_GAS_ABS_A2W	4	4	1	0.00824
+TS_DEC_THHP_GAS_ABS_G2W	4	4	1	0.00824
+TS_DEC_THHP_GAS_ADS_G2W	4	4	1	0.00824
+TS_DEC_COGEN_GAS 	4	4	1	0.00824
+TS_DEC_COGEN_OIL	4	4	1	0.00824
+TS_DEC_ADVCOGEN_GAS	4	4	1	0.00824
+TS_DEC_ADVCOGEN_H2	4	4	1	0.00824
+TS_DEC_BOILER_GAS	4	4	1	0.00824
+TS_DEC_BOILER_WOOD	4	4	1	0.00824
+TS_DEC_BOILER_OIL	4	4	1	0.00824
+/*TS_DHN_DAILY	60.3	60.3	1	0.00833
+TS_DHN_SEASONAL	150	150	1	0.0000606*/
+TS_DHN_DAILY_S	2	2	1	0.00833	
+TS_DHN_DAILY_M	2	2	1	0.00833																					
+TS_DHN_SEASONAL_S	168	168	1	0.0000606
+TS_DHN_SEASONAL_M	168	168	1	0.0000606
+TS_DHN_SEASONAL_L	168	168	1	0.0000606	
+SEASONAL_NG	   2256	752	1	0
+SEASONAL_H2 	4	4	1	0
+;
+
+
+# part [2.7.4]
+param loss_network	:=
+ELECTRICITY	0 #0.07
+HEAT_LOW_T_DHN	0.25 #or 0.10
+;

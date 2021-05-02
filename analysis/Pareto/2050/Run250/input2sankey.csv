@@ -1,0 +1,22 @@
+source,target,realValue,layerID,layerColor,layerUnit
+Exterior Heat,HPs,9611444.98,Exterior Heat,#8FBC8F,TWh
+Electricity,Elec,1026160.67,Electricity,#00BFFF,TWh
+Solar,DHN,3749079.71,Solar,#FFFF00,TWh
+Oil,CHP,23386992.53,Oil,#8B008B,TWh
+Wood,Biofuels,35980888.01,Wood,#CD853F,TWh
+Wood,Boilers,856111.99,Wood,#CD853F,TWh
+Elec,Export,1026160.67,Electricity,#00BFFF,TWh
+Elec,Elec demand,7712230.49,Electricity,#00BFFF,TWh
+Elec,HPs,1984177.51,Electricity,#00BFFF,TWh
+CHP,Elec,9121087.99,Electricity,#00BFFF,TWh
+CHP,Heat LT Dec,4711633.16,Heat LT,#FA8072,TWh
+CHP,Dec. Sto,5344693.18,Heat LT,#FA8072,TWh
+HPs,DHN,11595622.49,Heat LT,#FA8072,TWh
+Biofuels,Elec,575320.02,Electricity,#00BFFF,TWh
+Biofuels,Boilers,23386992.53,Oil,#8B008B,TWh
+Boilers,DHN,975959.86,Heat LT,#FA8072,TWh
+Dec. Sto,Heat LT Dec,255237.34,Heat LT,#FA8072,TWh
+DHN,Heat LT DHN,15443173.24,Heat LT,#FA8072,TWh
+DHN,Loss DHN,2498168.62,Heat LT,#FA8072,TWh
+DHN,DHN Sto,6726137.83,Heat LT,#FA8072,TWh
+DHN Sto,Heat LT DHN,6201359.68,Heat LT,#FA8072,TWh

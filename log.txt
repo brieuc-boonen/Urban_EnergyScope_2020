@@ -1,0 +1,200 @@
+analysis/CarbTax/Run0.23
+#				incremental	total
+#phase		seconds		memory		memory
+#execute	0.023019	3271312		3271312
+### ESTD_hood_fmin_main.run:72(2967)   option ...
+#execute	1.2e-05		0		3271312
+### ESTD_hood_fmin_main.run:74(3003)   solve ...
+#compile	0.000493	100800		3372112
+##genmod times:
+##seq      seconds    cum. sec.    mem. inc.  name
+## 88            0            0            0  derstage
+## 92        3e-06        3e-06            0  sstatus
+## 106        3e-06        6e-06            0  PERIODS
+## 107        2e-06        8e-06            0  HOURS
+## 108        3e-06      1.1e-05            0  TYPICAL_DAYS
+## 109     0.006508     0.006519       426208  T_H_TD
+## 110      2.4e-05     0.006543            0  SECTORS
+## 111        5e-06     0.006548            0  END_USES_INPUT
+## 114        3e-06     0.006551            0  RESOURCES
+## 115        5e-06     0.006556            0  BIOFUELS
+## 116        3e-06     0.006559            0  EXPORT
+## 117        2e-06     0.006561            0  IMPORT_FEED_IN
+## 123        7e-06     0.006568            0  STORAGE_OF_END_USES_TYPES
+## 127        3e-06     0.006571            0  LAYERS
+## 134        5e-06     0.006576            0  STORAGE_DAILY
+## 135      1.6e-05     0.006592            0  TS_OF_DEC_TECH
+## 136     0.167381     0.173973      1874992  TYPICAL_DAY_OF_PERIOD
+## 137     0.136101     0.310074      1907896  HOUR_OF_PERIOD
+## 141     0.000115     0.310189            0  electricity_time_series
+## 142      9.8e-05     0.310287            0  heating_time_series
+## 143      5.4e-05     0.310341            0  mob_pass_time_series
+## 144      6.1e-05     0.310402            0  mob_freight_time_series
+## 145     0.000328      0.31073         3096  c_p_t
+## 146     0.001087     0.311817         3608  cop_time_series
+## 147      2.1e-05     0.311838            0  end_uses_demand_year
+## 148        1e-05     0.311848            0  end_uses_input
+## 151        3e-06     0.311851            0  i_rate
+## 154        3e-06     0.311854            0  share_mobility_public_min
+## 155        4e-06     0.311858            0  share_mobility_public_max
+## 156        3e-06     0.311861            0  share_renovation_min
+## 157        3e-06     0.311864            0  share_renovation_max
+## 158        2e-06     0.311866            0  share_freight_train_min
+## 159        4e-06      0.31187            0  share_freight_train_max
+## 160        3e-06     0.311873            0  share_heat_dhn_min
+## 161        2e-06     0.311875            0  share_heat_dhn_max
+## 162        3e-06     0.311878            0  t_op
+## 163      2.1e-05     0.311899            0  f_max
+## 165        2e-05     0.311919            0  fmax_perc
+## 166        2e-05     0.311939            0  fmin_perc
+## 167      2.3e-05     0.311962            0  avail
+## 168      1.7e-05     0.311979            0  c_op
+## 170        4e-06     0.311983            0  peak_sh_factor
+## 171        4e-06     0.311987            0  peak_real_factor
+## 172        3e-06      0.31199            0  worst_year_factor
+## 173     0.000337     0.312327            0  layers_in_out
+## 176      3.3e-05      0.31236            0  c_maint
+## 177        2e-05      0.31238            0  lifetime
+## 178        7e-05      0.31245            0  tau
+## 179      2.1e-05     0.312471            0  gwp_constr
+## 180      1.1e-05     0.312482            0  gwp_op
+## 181      2.2e-05     0.312504            0  c_p
+## 182     0.000107     0.312611            0  storage_eff_in
+## 183      0.00012     0.312731            0  storage_eff_out
+## 184      2.5e-05     0.312756            0  storage_losses
+## 185      1.2e-05     0.312768            0  storage_charge_time
+## 186        1e-05     0.312778            0  storage_discharge_time
+## 187      1.1e-05     0.312789            0  storage_availability
+## 194      1.4e-05     0.312803            0  c_inc_fix
+## 195        7e-06      0.31281            0  c_inc_var
+## 196     0.002664     0.315474        47704  total_time
+## 198      2.1e-05     0.315495            0  ngroup
+## 201        3e-06     0.315498            0  tax
+## 203     0.000109     0.315607            0  Share_Mobility_Public
+## 205      1.3e-05      0.31562            0  Share_Renovation
+## 207        1e-05      0.31563            0  Share_Freight_Train
+## 209        4e-06     0.315634            0  Share_Heat_Dhn
+## 211        3e-06     0.315637            0  Share_Heat_Dec
+## 213        1e-05     0.315647            0  Share_Heat_Ren
+## 215      1.5e-05     0.315662          520  F
+## 217     0.009858      0.32552      4943824  F_t
+## 219     0.045241     0.370761     19936072  Storage_in
+## 221     0.007993     0.378754      4194320  Storage_out
+## 225      3.1e-05     0.378785            0  Shares_LowT_Dec
+## 229      2.9e-05     0.378814            0  F_Solar
+## 231     0.003156      0.38197       723336  F_t_Solar
+## 235     0.000752     0.382722       262464  End_Uses
+## 239      1.2e-05     0.382734            0  TotalCost
+## 241        7e-06     0.382741            0  C_inv
+## 243        1e-05     0.382751         1032  C_maint
+## 245        5e-06     0.382756            0  C_op
+## 247        2e-06     0.382758            0  TotalGWP
+## 249        5e-06     0.382763         2064  GWP_constr
+## 251        3e-06     0.382766            0  GWP_op
+## 253     0.000219     0.382985       101520  Network_losses
+## 255     0.039428     0.422413     17098528  Storage_level
+## 257      2.2e-05     0.422435            0  Prosumer_tax
+## 259      1.2e-05     0.422447            0  R_inc
+## 261      1.4e-05     0.422461         3096  R_ren
+## 263     0.001886     0.424347       195096  end_uses_t
+## 265      1.4e-05     0.424361            0  Share_RENOVATION_total
+## 267        5e-06     0.424366            0  ShareDHN_implementation_LowTH
+## 269        3e-06     0.424369            0  renovation_share
+## 271      2.6e-05     0.424395            0  totalcost_cal
+## 273      2.6e-05     0.424421            0  investment_cost_calc
+## 275      2.7e-05     0.424448         3096  main_cost_calc
+## 277     0.064799     0.489247      2726400  op_cost_calc
+## 279     0.000112     0.489359        36120  rinc_cost_cond
+## 281      6.2e-05     0.489421        44600  rinc_cost_calc
+## 283        5e-06     0.489426            0  rren_cost_cond
+## 285        3e-06     0.489429            0  rren_cost_calc
+## 287      2.9e-05     0.489458            0  totalGWP_calc
+## 289      2.6e-05     0.489484         3096  gwp_constr_calc
+## 291     0.049406      0.53889      2112000  gwp_op_calc
+## 293      6.8e-05     0.538958         3096  size_limit_max_rest
+## 295      3.8e-05     0.538996            0  size_limit_max_rest_dhn
+## 297     0.034767     0.573763      8213136  capacity_factor_t
+## 299     0.454836       1.0286     25436808  capacity_factor
+## 301     0.075072      1.10367      3801600  resource_availability
+## 303      0.71007      1.81374     73093568  layer_balance
+## 305      1.35586       3.1696     46016080  storage_level
+## 307     0.133918      3.30352     24780944  impose_daily_storage
+## 309     0.036422      3.33994      8516800  limit_energy_stored_to_maximum
+## 311     0.057277      3.39722     13046832  storage_layer_in
+## 313     0.051016      3.44824      9901080  storage_layer_out
+## 315     0.076843      3.52508     17581080  limit_energy_to_power_ratio
+## 317     0.030217       3.5553       307200  network_losses
+## 319      2.5e-05      3.55532            0  singlelines_dhn
+## 321        5e-06      3.55533            0  servicelines_dhn
+## 323     0.000179      3.55551            0  extra_dhn
+## 325      0.00503      3.56054       400168  thermal_solar_capacity_factor
+## 327      4.1e-05      3.56058            0  thermal_solar_total_capacity
+## 329     0.030752      3.59133      5055904  decentralised_heating_balance
+## 331     0.002325      3.59365       760632  peak_lowT_dec
+## 333      2.7e-05      3.59368            0  Max_Heat_Demand
+## 335     0.000148      3.59383        32800  max_dhn_heat_demand
+## 337        7e-05       3.5939        38400  peak_lowT_dhn
+## 339      1.8e-05      3.59392            0  roof_lim
+## 341      4.86346      8.45738    383964840  f_max_perc
+## 343      4.51737      12.9747     18298536  f_min_perc
+## 345     0.005667      12.9804       422400  feed_in_tariff
+## 347      2.5e-05      12.9804            0  renovation_f_max_perc
+## 349        6e-06      12.9804            0  prosumer_policy
+## 351        5e-06      12.9804            0  obj
+#genmod		12.9805		696325168	699697280
+#merge		0.21141		8388616		708085896
+#collect	0.220669	117441624	825527520
+
+Presolve eliminates 627420 constraints and 409186 variables.
+Adjusted problem:
+225857 variables, all linear
+420288 constraints, all linear; 1277016 nonzeros
+	349447 equality constraints
+	70841 inequality constraints
+1 linear objective; 1 nonzero.
+
+#presolve	0.882976	130163864	955691384
+#output		0.731554	0		955691384
+#Total		15.0506
+CPLEX 12.9.0.0: mipdisplay 5
+mipinterval 1000
+mipgap 0.01
+timelimit 64800
+CPLEX 12.9.0.0: optimal solution; objective 5056329.652
+44 simplex iterations (0 in phase I)
+205 barrier iterations
+#execute	0.403183	114772264	1070463648
+### ESTD_hood_fmin_main.run:76(3015)   display ...
+#compile	4.6e-05		0		1070463648
+##genmod times:
+##seq      seconds    cum. sec.    mem. inc.  name
+##  7        1e-06        1e-06            0  solve_result_num
+#genmod		1.5e-05		0		1070463648
+solve_result_num = 0
+
+#execute	4.2e-05		4104		1070467752
+### ESTD_hood_fmin_main.run:77(3044)   display ...
+#compile	5e-06		0		1070467752
+##genmod times:
+##seq      seconds    cum. sec.    mem. inc.  name
+## 28        1e-06        1e-06            0  _solve_elapsed_time
+#genmod		9e-06		0		1070467752
+_solve_elapsed_time = 63.0329
+
+#execute	2.3e-05		0		1070467752
+### ESTD_hood_fmin_main.run:81(3128)   option ...
+### ESTD_hood_fmin_main.run:82(3159)   option ...
+--------------SAVING COST -----------
+--------------SAVING GWP -----------
+--------------SAVING losses -----------
+--------------SAVING ASSETS -----------
+--------------SAVING elec Storage -----------
+--------------SAVING TS Storage -----------
+--------------SAVING Elec Layer -----------
+--------------SAVING LT Layer -----------
+--------------SAVING PASSANGER Layer -----------
+--------------SAVING FREIGHT Layer -----------
+--------------SAVING H2Layer -----------
+--------- SAVING Yearly balances --------
+--------- SAVING Parameters Infos --------
+--------- SAVING SANKEY --------

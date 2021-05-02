@@ -1,8 +1,0 @@
-source,target,realValue,layerID,layerColor,layerUnit
-Electricity,Elec,3669.81,Electricity,#00BFFF,TWh
-Elec,Export,3669.81,Electricity,#00BFFF,TWh
-Elec,Elec demand,2650.00,Electricity,#00BFFF,TWh
-Heat,Dec. Sto,930.29,Heat LT,#FA8072,TWh
-Dec. Sto,Heat LT Dec,892.64,Heat LT,#FA8072,TWh
-Dec. Sto,Losses,37.65,Heat,#708090,TWh
-Heat,Heat LT Dec,12613.31,Heat,#FA8072,TWh

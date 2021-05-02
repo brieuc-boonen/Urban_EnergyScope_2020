@@ -1,0 +1,18 @@
+source,target,realValue,layerID,layerColor,layerUnit
+Exterior Heat,HPs,22193211.95,Exterior Heat,#8FBC8F,TWh
+Electricity,Elec,3337631.66,Electricity,#00BFFF,TWh
+Solar,Elec,17280762.30,Solar,#FFFF00,TWh
+Solar,DHN,37108793.37,Solar,#FFFF00,TWh
+Elec,Export,6958082.81,Electricity,#00BFFF,TWh
+Elec,Elec demand,1027920.92,Electricity,#00BFFF,TWh
+Elec,Storage,7427226.82,Electricity,#00BFFF,TWh
+Storage,Elec demand,6684309.57,Electricity,#00BFFF,TWh
+Storage,Losses,742917.25,Electricity,#708090,TWh
+Elec,HPs,4488819.45,Electricity,#00BFFF,TWh
+Elec,Boilers,716343.96,Electricity,#00BFFF,TWh
+HPs,DHN,26682031.40,Heat LT,#FA8072,TWh
+Boilers,DHN,709251.45,Heat LT,#FA8072,TWh
+DHN,Heat LT DHN,-2245442.44,Heat LT,#FA8072,TWh
+DHN,Loss DHN,6476173.90,Heat LT,#FA8072,TWh
+DHN,DHN Sto,60269344.75,Heat LT,#FA8072,TWh
+DHN Sto,Heat LT DHN,54809671.18,Heat LT,#FA8072,TWh
